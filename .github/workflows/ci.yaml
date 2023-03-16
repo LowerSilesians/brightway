@@ -1,0 +1,56 @@
+name: CI tests on push
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+  pull_request_target:
+    types:
+      - opened
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install packages
+        run: |
+          pip install -r requirements/dev.txt
+      - name: Run linter
+        run: |
+          prospector ./bw_visualization --profile .prospector.yaml
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install packages
+        run: |
+          pip install -r requirements/dev.txt
+      - name: Run test suite
+        run: |
+          pytest -v
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install packages
+        run: |
+          pip install -r requirements/dev.txt
+      - name: Run bandit
+        run: |
+          bandit -r ./bw_visualization

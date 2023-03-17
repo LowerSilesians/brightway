@@ -55,7 +55,6 @@ pycountry==22.3.5
 pyjstat==2.3.0
 PyPrind==2.11.3
 PyQt5==5.15.7
-pywin32==302
 pyxlsb==1.0.10
 PyYAML==6.0
 scipy==1.9.3

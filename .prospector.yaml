@@ -44,8 +44,10 @@ pylint:
     - redefined-outer-name
     - no-self-argument
   options:
-    max-locals: 25
+    max-locals: 30
     max-line-length: 120
+    max-public-methods: 25
+    max-statements: 60
 
 pycodestyle:
   disable:

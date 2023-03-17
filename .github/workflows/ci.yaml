@@ -21,6 +21,7 @@ jobs:
       - name: Install packages
         run: |
           pip install -r requirements/dev.txt
+          pip install -r requirements/database_explorer.txt
       - name: Run linter
         run: |
           prospector ./bw_visualization --profile .prospector.yaml
@@ -36,6 +37,7 @@ jobs:
       - name: Install packages
         run: |
           pip install -r requirements/dev.txt
+          pip install -r requirements/database_explorer.txt
       - name: Run test suite
         run: |
           pytest -v
@@ -51,6 +53,7 @@ jobs:
       - name: Install packages
         run: |
           pip install -r requirements/dev.txt
+          pip install -r requirements/database_explorer.txt
       - name: Run bandit
         run: |
           bandit -r ./bw_visualization

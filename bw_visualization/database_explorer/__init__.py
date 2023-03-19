@@ -1,6 +1,6 @@
-from .database_explorer_bw25 import ListAct
+from .database_explorer import ListAct
 
 
-def plot(data):
-    app = ListAct.dashboard(**data)
-    return app
+plot = ListAct
+
+__all__ = ['plot', ]

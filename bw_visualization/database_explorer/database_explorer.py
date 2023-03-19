@@ -1,16 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon May  2 16:14:57 2022
-
-@author: romai
-"""
-# Importing libraries
 import math
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-plt.style.use("ggplot")
 import matplotlib.backends.backend_pdf
 import plotly.graph_objects as go
 import plotly.express as px
@@ -18,7 +9,9 @@ import bw2data as bwd
 import bw2calc as bwc
 from IPython.display import display
 
-from .dashboard_functions import calculate_dashboard, plot_dashboard
+from .utils import calculate_dashboard, plot_dashboard
+
+plt.style.use("ggplot")
 
 # Default impact categories
 METHODS_EF = [
@@ -329,14 +322,10 @@ class ListAct:
 
     def dashboard(self, i, method, cutoff, amount=1):
         act = self.list_act[i]
-        print(act)
-        print(method)
 
         lca = bwc.LCA({act: amount}, method)
         lca.lci()
         lca.lcia()
-
-        print(lca.score)
 
         (
             df,
@@ -401,7 +390,6 @@ class ListAct:
     def plot_sankeys(self, i, methods, cutoff, amount=1, save=True):
         with open("output_Sankey.html", "a", encoding='utf-8') as f:
             for method in methods:
-                print(method)
                 fig = self.plot_sankey(i=i, method=method, cutoff=cutoff, amount=amount)
                 if save:
                     f.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
@@ -490,7 +478,6 @@ class ListAct:
     def plot_sunbursts(self, i, methods, cutoff, amount=1, save=True):
         with open("output_Sunburst.html", "a", encoding='utf-8') as f:
             for method in methods:
-                print(method)
                 fig = self.plot_sunburst(
                     i=i, method=method, cutoff=cutoff, amount=amount
                 )

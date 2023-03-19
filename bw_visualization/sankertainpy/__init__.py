@@ -1,7 +1,10 @@
-from .sankertainpy import recursive_calculation_to_plotly, generate_sankey
+from .sankertainpy import generate_sankey
+from .utils import recursive_calculation_to_plotly
 
 
-def plot(data):
-    result = recursive_calculation_to_plotly(**data)
-    fig = generate_sankey(result, type=1)
-    return fig
+def plot(data, method):
+    result = recursive_calculation_to_plotly(data, method)
+    return generate_sankey(result, type=1)
+
+
+__all__ = ['plot', ]

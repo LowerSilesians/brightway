@@ -1,3 +1,6 @@
+-r ./base.txt
+-r ./bw_visualization.txt
+
 pylint==2.15.6
 pytest==6.2.5
 bandit==1.7

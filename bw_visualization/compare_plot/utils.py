@@ -5,11 +5,14 @@ import bw2analyzer as ba
 
 
 def lca_comparison(fu, methods, method_ref=None):
-    """
-    Compare several activities for several impact categories and return a DataFrame with the impact score for each
-    categories and each activities. ---------- fu : dicitonnary of the activity/activities to compare associated with
-    its/their associated reference flow/s methods : tuple of several/single methods method_ref : method used for
-    normalization (by default, None)
+    """Compare several activities for several impact categories and return a DataFrame with the impact score for each
+    categories and each activities.
+
+    Parameters
+    ----------
+    fu : dictionary of the activity/activities to compare associated with its/their associated reference flow/s
+    methods : tuple of several/single methods
+    method_ref : method used for normalization (by default, None)
     """
     if method_ref is None:  # if no reference method is given, the first method is chosen by default.
         method_ref = methods[0]
@@ -40,10 +43,11 @@ def lca_comparison(fu, methods, method_ref=None):
 
 
 def act_topscore(fu, method_ref):
-    """
-    Give the activity which has the highest score the reference method
+    """Give the activity which has the highest score the reference method
+
+    Parameters
     ----------
-    fu : dicitonnary of the activity/activities to compare associated with its/their associated reference flow/s
+    fu : dictionary of the activity/activities to compare associated with its/their associated reference flow/s
     method_ref : method used for normalization
     """
     activities = list(fu.keys())
@@ -61,8 +65,9 @@ def act_topscore(fu, method_ref):
 
 
 def contributions_df(activity, method, limit=0.01, limit_type='percent', group_by_other=False, norm=False):
-    """
-    Gather in a dataframe the main contributors of the lca score
+    """Gather in a dataframe the main contributors of the lca score
+
+    Parameters
     ----------
     activity : activity to be analyzed
     method : impact category method

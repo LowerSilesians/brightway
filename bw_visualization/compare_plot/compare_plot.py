@@ -11,15 +11,14 @@ from IPython.display import display
 from utils import lca_comparison, contributions_df, act_topscore
 
 # define standard color palette:
-colors = ["#F08C2E", "#7f6000", "#72AF42", "#A32683"]
+COLORS = ["#F08C2E", "#7f6000", "#72AF42", "#A32683"]
+COLORS.extend(COLORS)
 
 # create longer color list for complex figures
 ColorDivYlBr = sns.color_palette('YlOrBr', 6)
 ColorSeqGreen = sns.color_palette('Greens', 6)
 ColorSeqRdPu = sns.color_palette('RdPu', 6)
 ColorSeqOrg = sns.color_palette('Oranges', 5)
-
-colors.extend(colors)
 
 
 # the 2 following methods come directly from the library lca_algebraic from stats.py :
@@ -62,12 +61,13 @@ def display_with_export_button(df):
 
 
 def compare(fu, methods, reference_category=None, sharex=True, cols=2, func_unit="kg"):
-    """
-    Compare several activities for several impact categories
+    """Compare several activities for several impact categories
+
+    Parameters
     ----------
-    fu : dicitonnary of the activity/activities to compare associated with its/their associated reference flow/s
+    fu : dictionary of the activity/activities to compare associated with its/their associated reference flow/s
     methods : set of methods,
-    reference_category : method used for normalization, None by default
+    reference_category : method used for normalization (None by default)
     sharex: Shared X axes ? True by default
     cols: number of columns to plot
     func_unit : functionnal unit (kg by default)
@@ -89,7 +89,7 @@ def compare(fu, methods, reference_category=None, sharex=True, cols=2, func_unit
                 kind='bar',
                 alpha=0.8,
                 fontsize=20,
-                color=colors
+                color=COLORS
             )
 
             axes.set_yticklabels(["0"])  # to remove all the graduations and keep only the zero
@@ -151,7 +151,7 @@ def compare(fu, methods, reference_category=None, sharex=True, cols=2, func_unit
                 kind='bar',
                 alpha=0.8,
                 fontsize=15,
-                color=colors)
+                color=COLORS)
             axes = axes.flatten()
             for ax, m in zip(axes, methods):
                 ax.set_yticklabels(["0"])  # to remove all the graduations and keep only the zero
@@ -203,12 +203,16 @@ def compare(fu, methods, reference_category=None, sharex=True, cols=2, func_unit
 
 
 def hotspots(fu, methods, reference_category=None, limit=0.05, func_unit="kg"):
-    """
-    Plot the contribution analysis of an activity for several impact categories and display the associated DataFrame
-    ready to export. If the number of activities is too large, the figure is not displayed. ---------- fu :
-    dicitonnary of the single activity with its associated amount methods : set of impact category methods method_ref
-    : method used for normalization None by default limit: relative threshold of the total lca score from which
-    contributors are displayed : (0.05 by default) func_unit : functionnal unit (kg by default)
+    """Plot the contribution analysis of an activity for several impact categories and display the associated DataFrame
+    ready to export. If the number of activities is too large, the figure is not displayed.
+
+    Parameters
+    ----------
+    fu : dictionary of the single activity with its associated amount
+    methods : set of impact category methods
+    reference_category : method used for normalization (None by default)
+    limit: relative threshold of the total lca score from which contributors are displayed (0.05 by default)
+    func_unit : functionnal unit (kg by default)
     """
     if reference_category is None:  # if no reference method is given, the first method is chosen by default.
         reference_category = methods[0]
@@ -216,7 +220,7 @@ def hotspots(fu, methods, reference_category=None, limit=0.05, func_unit="kg"):
     df = lca_comparison(fu, methods, method_ref=reference_category)
 
     # to have one color by method, we define a dataframe:
-    df_color = pd.DataFrame(index=methods, data=[colors[c] for c in range(len(methods))]).T
+    df_color = pd.DataFrame(index=methods, data=[COLORS[c] for c in range(len(methods))]).T
 
     def contributions(act, method):
         with warnings.catch_warnings():
@@ -289,18 +293,20 @@ def hotspots(fu, methods, reference_category=None, limit=0.05, func_unit="kg"):
         print('The number of activities is too large to plot the contributions for each of them')
     else:
         for act in list(fu.keys()):
-            _display_tabs([("on " + str(i[1]), lambda i=i: contributions(act, i)) for i in methods])
+            _display_tabs([("on " + str(i[1]), contributions(act, i)) for i in methods])
 
 
 def impact_transfer(fu, methods, reference_category=None, limit=5, cols=3, func_unit="kg"):
-    """
-    Plot the variations of the contribution of the top processes (for the reference method) for each impact category
+    """Plot the variations of the contribution of the top processes (for the reference method) for each impact category
 
+    Parameters
     ----------
-    fu : dicitonnary of activities with the associated amount
+    fu : dictionary of activities with the associated amount
     methods : set of impact category methods
-    method_ref : method used for normalization None by default
-    limit: relative threshold of the total lca score from which contributors are displayed : (0.05 by default)
+    reference_category : method used for normalization (None by default)
+    limit: relative threshold of the total lca score from which contributors are displayed (0.05 by default)
+    cols: number of columns to plot
+    func_unit : functionnal unit (kg by default)
     """
     if reference_category is None:  # if no reference method is given, the first method is chosen by default.
         reference_category = methods[0]
@@ -334,7 +340,7 @@ def impact_transfer(fu, methods, reference_category=None, limit=5, cols=3, func_
             warnings.simplefilter("ignore")
             sns.set_style("white")
             fig, axes = plt.subplots(figsize=(20, 10))
-            plt.bar(range(len(df_transfer)), df_transfer, alpha=0.8, color=colors)
+            plt.bar(range(len(df_transfer)), df_transfer, alpha=0.8, color=COLORS)
             xlabel = [bd.Method(m).name[1] + ' ' + '\n' + bd.methods[m]['unit'] for m in methods]
             plt.xticks(range(len(df_transfer)), ['\n'.join(textwrap.wrap(label, 30)) for label in xlabel], fontsize=15)
             # To remove the frame but keep a horizontal line on 0
@@ -433,7 +439,7 @@ def impact_transfer(fu, methods, reference_category=None, limit=5, cols=3, func_
                     kind='barh',
                     alpha=0.8,
                     fontsize=20,
-                    color=colors)
+                    color=COLORS)
                 axes = axes.flatten()
 
                 for ax, m in zip(axes, methods):
@@ -476,14 +482,18 @@ def impact_transfer(fu, methods, reference_category=None, limit=5, cols=3, func_
 
 
 def lca_graphic(fu, methods, reference_category=None, func_unit="kg"):
-    """
-    Generic function that calls the other methods to plot : - one dashboard that compare the impacts of serveral
-    activites in different impact categories - one dashboard for each activity to plot the main contributors for each
-    impact categories - one dashboard to plot the variations of the contribution of the top processes (for the
-    reference method) for each impact category ---------- fu : dicitonnary of the activity/activities to compare
-    associated with its/their associated reference flow/s methods : set of methods, method_ref : method used for
-    normalization, None by default act_transfert : activity for which the impact transfers compared to the top
-    activity are computed func_unit : functionnal unit (kg by default)
+    """Generic function that calls the other methods to plot :
+    - one dashboard that compare the impacts of serveral activites in different impact categories
+    - one dashboard for each activity to plot the main contributors for each impact categories
+    - one dashboard to plot the variations of the contribution of the top processes (for the
+        reference method) for each impact category
+
+    Parameters
+    ----------
+    fu : dictionary of the activity/activities to compare associated with its/their associated reference flow/s
+    methods : set of methods
+    reference_category : method used for normalization (None by default)
+    func_unit : functionnal unit (kg by default)
     """
 
     if reference_category is None:  # if no reference method is given, the first method is chosen by default.

@@ -171,21 +171,24 @@ def adjust_data(data, type, cutoff, emission, barrier_free):
 
 
 def generate_sankey(data, type=1, cutoff=0.05, emissions=True, method='', barrier_free=True):
-    """
-    Generate a plotly sankey figure with uncertainty. Made for visualizing LCA data from brightway2 activities.
-    Args:
-    data= { 'sources': list of int regarding the source nodes from 'nodes' 'targets': list of int regarding the
-    target nodes from 'nodes' 'scores': list of floats/list containing the weight of the links between the nodes from
-    'nodes'. Monte Carlo results are wrapped in a nested list. 'nodes': dictionary containing information about the
-    nodes. Keys are int values. } type: int.  0 for visualize the uncertainty in form of colored intensity flows in
-    relation to the standard deviation. Relativ to the highest standard deviation of the links. 1 for visualize the
-    uncertainty by splitting each link in several links regarding theire quantiles with a color scale from low -green
-    to high - red.
+    """Generate a plotly sankey figure with uncertainty. Made for visualizing LCA data from brightway2 activities.
 
-    cutoff: float. Bundle links lower than cutoff value to one target node.
-
-    emissions: bool. activate or deactivate the emission links. They can be distracting if very low and not
-    relevant.
+    Parameters
+    ----------
+    data : dict
+        - 'sources': list of int regarding the source nodes from 'nodes'
+        - 'targets': list of int regarding the target nodes from 'nodes'
+        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+            Monte Carlo results are wrapped in a nested list.
+        - 'nodes': dictionary containing information about the nodes. Keys are int values.
+    type: int
+        0 for visualize the uncertainty in form of colored intensity flows in relation to the standard deviation.
+        Relative to the highest standard deviation of the links. 1 for visualize the uncertainty by splitting each
+        link in several links regarding the ire quantiles with a color scale from low -green to high -red.
+    cutoff: float
+        Bundle links lower than cutoff value to one target node.
+    emissions: bool
+        activate or deactivate the emission links. They can be distracting if very low and not relevant.
 
     Background: https://doi.org/10.1016/j.cola.2019.03.002
     """

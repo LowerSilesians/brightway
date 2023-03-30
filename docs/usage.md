@@ -24,19 +24,19 @@ You can find below some data visualization realised with the dbex toolbox.
 
 A graph for a simple comparison of carbon footprint:
 
-![image info](plot/Carbon_Footprints_comparison.png)
+![image info](sample_pictures/database_explorer/Carbon_Footprints_comparison.png)
 
 A graph for a multricriteria LCA comparison:
 
-![image info](plot/multi_LCA_comparison.png)
+![image info](sample_pictures/database_explorer/multi_LCA_comparison.png)
 
 A graph for contribution analysis by susbtances and processes:
 
-![image info](plot/contribution_analysis_example.png)
+![image info](sample_pictures/database_explorer/contribution_analysis_example.png)
 
 And finally, an amazing interactive dashboard!!
 
-![image info](plot/Dashboard_2.png)
+![image info](sample_pictures/database_explorer/Dashboard_2.png)
 
 The dashboard function is taking a very very long time to run due the adapted GraphTraversal function that should not take that long. So there is a huge potential to improve the calculation and also the features of the vizualisation!
 
@@ -73,7 +73,7 @@ An example of the practical use of our tools can be found in the following [note
 
 This is a python package written for the depart de sentier [Sustainability assessment visualization contest](https://github.com/Depart-de-Sentier/visualization-contest-2022) to visualize brightway2 Monte Carlo LCA results with [plotly sankey diagrams](https://plotly.com/python/sankey-diagram/). sankertainpy is using an adjusted version of the [bw2analyzer function "recursive_calculation_to_object()"](https://github.com/brightway-lca/brightway2-analyzer/blob/main/bw2analyzer/utils.py) to generate the plotly compatible graph traversal LCA data. With the function generate_sankey(), direct emission impact can be calculated, flows smaller than the cutoff value are bundled to single nodes, and the uncertainty visualisation is generated. It is tested with brightway2 and ecoinvent 3.8 cut-off.  
 
-![example_image](/images/example_diagram.png)
+![example_image](sample_pictures/sankertainpy/example_diagram.png)
 
 ### Getting started:
 

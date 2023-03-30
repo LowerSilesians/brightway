@@ -13,16 +13,16 @@ from .utils import calculate_dashboard, plot_dashboard
 
 plt.style.use("ggplot")
 
-# Default impact categories
-METHODS_EF = [
-    m
-    for m in bwd.methods
-    if "EF v3.0 EN15804" in str(m)
-    and "no LT" not in str(m)
-    and "obsolete" not in str(m)
-]
-METHODS_CC = [m for m in METHODS_EF if "climate" in str(m)]
-METHOD_CC = METHODS_CC[0]
+# # Default impact categories
+# METHODS_EF = [
+#     m
+#     for m in bwd.methods
+#     if "EF v3.0 EN15804" in str(m)
+#     and "no LT" not in str(m)
+#     and "obsolete" not in str(m)
+# ]
+# METHODS_CC = [m for m in METHODS_EF if "climate" in str(m)]
+# METHOD_CC = METHODS_CC[0]
 
 
 class Color:
@@ -85,12 +85,14 @@ def contribution_analysis_by_activities(lca, ratio=0.8, length_max=10):
 
 
 class ListAct:
-    def __init__(self, database, name, location="", unit="", list_act_input=None):
+    def __init__(self, database, name, methods_ef, methods_cc, location="", unit="", list_act_input=None):
         self.database = database
         self.name = name
         self.list_act = list_act_input
         self.location = location
         self.unit = unit
+        self.METHODS_EF = methods_ef
+        self.METHODS_CC = methods_cc
 
     def search(self, strict=False):
         if not self.list_act:
@@ -164,18 +166,18 @@ class ListAct:
             dataframe.columns = [act["name"] + "_" + act["location"] for act in self.list_act]
         self.dataframe = dataframe
 
-    def get_impacts(self, methods=METHODS_EF):
+    def get_impacts(self):
         list_inv = [{act: 1} for act in self.list_act]
-        bwd.calculation_setups["multiLCA"] = {"inv": list_inv, "ia": methods}
+        bwd.calculation_setups["multiLCA"] = {"inv": list_inv, "ia": self.METHODS_EF}
         my_multi_lca = bwc.MultiLCA("multiLCA")
         df_impacts = pd.DataFrame(data=my_multi_lca.results)
-        df_impacts.columns = [f"{m[1]} \n {m[2]}" for m in methods]
+        df_impacts.columns = [f"{m[1]} \n {m[2]}" for m in self.METHODS_EF]
         df_impacts.index = [
             f"{act['name']} [{act['location']}]" for act in self.list_act
         ]
 
         self.impacts = df_impacts
-        self.methods = methods
+        self.methods = self.METHODS_EF
         return df_impacts
 
     def plot_impact_climate(self):
@@ -238,16 +240,16 @@ class ListAct:
         if comments:
             self.get_comments()
 
-    def analyse(self, methods_cc=METHODS_CC, methods_ef=METHODS_EF, print_data=True):
+    def analyse(self, print_data=True):
         self.get_inventories()
         if print_data:
             print(Color.BOLD + Color.UNDERLINE + "All flows:" + Color.END)
             display(self.dataframe)
-        self.get_impacts(methods=methods_cc)
+        self.get_impacts(methods=self.METHODS_CC)
         if print_data:
             print(Color.BOLD + Color.UNDERLINE + "Carbon footprint:" + Color.END)
             display(self.impacts)
-        self.get_impacts(methods_ef)
+        self.get_impacts(self.METHODS_EF)
         if print_data:
             print(Color.BOLD + Color.UNDERLINE + "All impacts:" + Color.END)
             display(self.impacts)

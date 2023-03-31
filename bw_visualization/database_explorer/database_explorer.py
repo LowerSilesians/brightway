@@ -245,11 +245,11 @@ class ListAct:
         if print_data:
             print(Color.BOLD + Color.UNDERLINE + "All flows:" + Color.END)
             display(self.dataframe)
-        self.get_impacts(methods=self.METHODS_CC)
+        self.get_impacts()
         if print_data:
             print(Color.BOLD + Color.UNDERLINE + "Carbon footprint:" + Color.END)
             display(self.impacts)
-        self.get_impacts(self.METHODS_EF)
+        self.get_impacts()
         if print_data:
             print(Color.BOLD + Color.UNDERLINE + "All impacts:" + Color.END)
             display(self.impacts)

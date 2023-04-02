@@ -13,17 +13,6 @@ from .utils import calculate_dashboard, plot_dashboard
 
 plt.style.use("ggplot")
 
-# # Default impact categories
-# METHODS_EF = [
-#     m
-#     for m in bwd.methods
-#     if "EF v3.0 EN15804" in str(m)
-#     and "no LT" not in str(m)
-#     and "obsolete" not in str(m)
-# ]
-# METHODS_CC = [m for m in METHODS_EF if "climate" in str(m)]
-# METHOD_CC = METHODS_CC[0]
-
 
 class Color:
     PURPLE = "\033[95m"

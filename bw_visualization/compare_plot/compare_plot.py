@@ -8,7 +8,7 @@ import ipywidgets as widgets
 import seaborn as sns
 from IPython.display import display
 
-from utils import lca_comparison, contributions_df, act_topscore
+from .utils import lca_comparison, contributions_df, act_topscore
 
 # define standard color palette:
 COLORS = ["#F08C2E", "#7f6000", "#72AF42", "#A32683"]

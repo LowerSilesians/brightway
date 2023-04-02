@@ -4,4 +4,4 @@
 
 [Compare plot](compare_plot/index.md)
 
-[Sankertainpy](snakertrainpy/index.md)
+[Sankertainpy](sankertainpy/index.md)

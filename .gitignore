@@ -6,7 +6,7 @@ venv
 .vscode
 .pytest_cache
 .env
-.egg-info
+*.egg-info
 .coverage
 
 build/

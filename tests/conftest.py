@@ -5,15 +5,17 @@ import bw2data as bd
 import bw2io as bi
 
 PROJECT_NAME = 'test'
+BACKUP_PATH = ''
 
 
 def pytest_sessionstart(session):
+    global BACKUP_PATH
     bd.projects.set_current(PROJECT_NAME)
     bi.useeio11(collapse_products=True, prune=True)
-    bi.backup_project_directory(PROJECT_NAME)
+    BACKUP_PATH = bi.backup_project_directory(PROJECT_NAME)  # backup_project_directory doesn't return file path and cant be used
 
 
 @pytest.fixture
-async def restore_database():
-    bi.restore_project_directory(f"{PROJECT_NAME}.tar.gz")
+def restore_database():
+    bi.restore_project_directory(BACKUP_PATH)
     bd.projects.set_current(PROJECT_NAME)

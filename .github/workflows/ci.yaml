@@ -38,6 +38,7 @@ jobs:
           pip install -r requirements/dev.txt
       - name: Run test suite
         run: |
+          python setup.py install
           pytest -v
   security:
     runs-on: ubuntu-latest

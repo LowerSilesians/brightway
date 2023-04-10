@@ -221,18 +221,21 @@ def contributions(act, method, limit, df, df_color, reference_category):
             names.append(bd.get_activity(c)['name'])
 
         # Add a row for the other contributors
+        # pylint: disable=unsubscriptable-object
         df_contrib.loc['Others'] = [df[method][act['name']] - df_contrib[c].sum() for c in df_contrib.columns]
 
         # Add the names
-        df_contrib['Activity'] = names + ['Others']
+        df_contrib['Activity'] = names + ['Others']  # pylint: disable=unsupported-assignment-operation
 
         fig, axes = plt.subplots(figsize=(20, 10))
         sns.set_style("white")
         plt.subplots_adjust(None, None, None, None, 0.5, 0.5)
+        # pylint: disable=unsubscriptable-object
         plt.barh(df_contrib.index, df_contrib[method], alpha=0.8, color=df_color[method])
         axes.set_title(f'Contribution analysis of LCA on {method[1]}', fontsize=20)
         axes.set_xlabel(bd.Method(method).name[1], fontsize=20)
         axes.set_xticks([])
+        # pylint: disable=unsubscriptable-object
         axes.set_yticks(range(len(df_contrib)),
                         ['\n'.join(textwrap.wrap(label, 40)) for label in df_contrib['Activity']], fontsize=15)
         # add each score of components

@@ -25,7 +25,7 @@ class JRCAssumedDiagonalGraphTraversal:
 
     .. warning:: Graph traversal with multioutput
     processes only works when other inputs are substituted (see `Multioutput processes in LCA
-    <http://chris.mutel.org/multioutput.html>`__ for a description of multiputput process math in LCA).
+    <http://chris.mutel.org/multioutput.html>`__ for a description of multioutput process math in LCA).
     """
 
     def calculate(self, lca, cutoff=0.005, max_calc=1e5, skip_coproducts=False):

@@ -1,11 +1,12 @@
 import bw2data as bd
-import bw2io as bi
+from ..conftest import restore_database
 
+
+# TBD: This should be a pytest fixture
 
 def sample_1():
-    bd.projects.set_current('compare-plot-test')
-    bi.useeio11()
-    eidb = bd.Database('USEEIO-1.1')
+    restore_database()
+    eidb = bd.Database('USEEIO-1.1-noproducts')
 
     methods = list(bd.methods)
 

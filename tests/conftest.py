@@ -1,10 +1,9 @@
 """Fixtures for bw_visualization"""
 
-import pytest
-import bw2data as bd
-
-import bw2io as bi
+from bw2data.tests import bw2test
 from pathlib import Path
+import bw2data as bd
+import bw2io as bi
 import requests
 
 
@@ -17,10 +16,11 @@ PROJECT_NAME = 'USEEIO-1.1-noproducts'
 
 def pytest_sessionstart(session):
     if not USEEIO_FIXTURE.exists():
+        print("Downloading US EEIO")
         URL = "https://files.brightway.dev/" + USEEIO_FILENAME
         request = requests.get(URL, stream=True)
         if request.status_code != 200:
-            raise NotFound(
+            raise ValueError(
                 "URL {} returns status code {}.".format(URL, request.status_code)
             )
         download = request.raw
@@ -33,7 +33,7 @@ def pytest_sessionstart(session):
                 f.write(segment)
 
 
-@pytest.fixture
+@bw2test
 def restore_database():
     bi.restore_project_directory(USEEIO_FIXTURE)
     bd.projects.set_current(PROJECT_NAME)

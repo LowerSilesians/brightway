@@ -11,3 +11,5 @@ venv
 
 build/
 dist/
+
+**.tar.gz

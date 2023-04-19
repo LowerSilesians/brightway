@@ -3,16 +3,8 @@ import pytest
 
 from bw_visualization.database_explorer.utils import (
     JRCAssumedDiagonalGraphTraversal,
-    separate_multiple_parent,
-    plot_sankey,
-    plot_dashboard,
-    plot_sunbursts,
-    plot_waterfall,
-    calculate_dashboard,
 )
 from bw_visualization.database_explorer.database_explorer import (
-    contribution_analysis_by_substances,
-    contribution_analysis_by_activities,
     ListAct,
 )
 import numpy as np

@@ -2,8 +2,6 @@ import bw2data as bd
 from ..conftest import restore_database
 
 
-# TBD: This should be a pytest fixture
-
 def sample_1():
     restore_database()
     methods = list(bd.methods)

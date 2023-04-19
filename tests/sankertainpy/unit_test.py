@@ -2,7 +2,8 @@ from pprint import pprint
 import pytest
 
 from bw_visualization.sankertainpy.utils import (
-    check_node,
+    update_or_create_nodes,
+    calculate_score,
     recursive_calculation_to_plotly,
 )
 from bw_visualization.sankertainpy.sankertainpy import (
@@ -27,8 +28,8 @@ ACT, METHOD = sample_1()
         (ACT, METHOD, None)
     ]
 )
-def test_check_node_success(act, method, expected):
-    result = check_node(None, act, None, None, False, 1, method, 100, None, 1e-2)
+def test_update_or_create_nodes_success(act, method, expected):
+    result = update_or_create_nodes(None, act, None, None, None, None, None)
 
     assert result[0] is not None
     assert result[1] is not None
@@ -36,8 +37,6 @@ def test_check_node_success(act, method, expected):
     assert result[3] is not None
     assert result[4] is not None
     assert result[5] is not None
-    assert result[6] is not None
-    assert result[7] is not None
 
 
 @pytest.mark.parametrize(
@@ -47,8 +46,8 @@ def test_check_node_success(act, method, expected):
     ]
 )
 @pytest.mark.xfail(strict=True)
-def test_check_node_fail(act, method, expected):
-    result = check_node(None, act, None, None, False, 1, method, 100, None, 1e-2)
+def test_update_or_create_nodes_fail(act, method, expected):
+    result = update_or_create_nodes(None, act, None, None, None, None, None)
 
     assert result[0] is None
     assert result[1] is None
@@ -56,8 +55,35 @@ def test_check_node_fail(act, method, expected):
     assert result[3] is None
     assert result[4] is None
     assert result[5] is None
-    assert result[6] is None
-    assert result[7] is None
+
+
+@pytest.mark.parametrize(
+    ('act', 'method', 'expected'),
+    [
+        (ACT, METHOD, None)
+    ]
+)
+def test_calculate_score_success(act, method, expected):
+    result = calculate_score(act, None, False, 1, method, 100, None, 1e-2)
+
+    assert result[0] is not None
+    assert result[1] is not None
+    assert result[2] is not None
+
+
+@pytest.mark.parametrize(
+    ('act', 'method', 'expected'),
+    [
+        (ACT, METHOD, None)
+    ]
+)
+@pytest.mark.xfail(strict=True)
+def test_calculate_score_fail(act, method, expected):
+    result = calculate_score(act, None, False, 1, method, 100, None, 1e-2)
+
+    assert result[0] is None
+    assert result[1] is None
+    assert result[2] is None
 
 
 @pytest.mark.parametrize(

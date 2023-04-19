@@ -39,8 +39,12 @@ class JRCAssumedDiagonalGraphTraversal:
             Cutoff criteria to stop LCA calculations. Relative score of total, i.e. 0.005 will cutoff if
             a dataset has a score less than 0.5 percent of the total.
         max_calc : int (default=10000)
-            Maximum number of LCA calculations to perform. Returns: Dictionary of nodes,
-            edges, and number of LCA calculations.
+            Maximum number of LCA calculations to perform.
+
+        Returns
+        -------
+        dict
+            Dictionary of nodes, edges, and number of LCA calculations.
         """
         if not hasattr(lca, "supply_array"):
             lca.lci()

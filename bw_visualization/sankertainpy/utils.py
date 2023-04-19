@@ -4,7 +4,7 @@ import numpy as np
 from bw2data import get_activity
 
 
-def check_node(nodes, activity, actual_node, lca_obj, mc, amount, lcia_method, mc_number, total_score, cutoff):
+def update_or_create_nodes(nodes, activity, actual_node, parent_node, source, target, scores):
     if nodes is None:
         nodes = {0: {"act": activity, 'name': f"{activity['name']}, {activity['location']}"},
                  1: {"act": activity, 'name': f"{activity['name']}, {activity['location']}"}}
@@ -16,6 +16,10 @@ def check_node(nodes, activity, actual_node, lca_obj, mc, amount, lcia_method, m
     else:
         nodes[actual_node] = {"act": activity, 'name': f"{activity['name']}, {activity['location']}"}
 
+    return nodes, actual_node, parent_node, source, target, scores
+
+
+def calculate_score(activity, lca_obj, mc, amount, lcia_method, mc_number, total_score, cutoff):
     if lca_obj is None:
         if mc:
             lca_obj = bc.LCA({activity: amount}, lcia_method, use_distributions=True)
@@ -46,7 +50,7 @@ def check_node(nodes, activity, actual_node, lca_obj, mc, amount, lcia_method, m
             lca_obj.redo_lcia({activity.id: amount})
             score = lca_obj.score
 
-    return nodes, actual_node, parent_node, source, target, scores, lca_obj, total_score, score
+    return lca_obj, total_score, score
 
 
 def recursive_calculation_to_plotly(
@@ -69,27 +73,52 @@ def recursive_calculation_to_plotly(
         parent_node=None,
 
 ):
-    """Traverse a supply chain graph, and calculate the LCA scores of each component. Adds a dictionary to
-    ``result_list`` of the form:
+    """Traverse a supply chain graph, and calculate the LCA scores of each component.
+    Adds a dictionary to result_list of the form:
 
-    Args: activity: ``Activity``. The starting point of the supply chain graph. lcia_method: tuple. LCIA method to
-    use when traversing supply chain graph. amount: int. Amount of ``activity`` to assess. max_level: int. Maximum
-    depth to traverse. cutoff: float. Fraction of total score to use as cutoff when deciding whether to traverse
-    deeper and if Monte Carlo simulation should be carried out. mc: bool. Decide if Monte Carlo simulation should
-    carry out. This can take some time. mc_number: int. Iterations of the monte carlo simulations
+    Parameters
+    ----------
+    activity: Activity
+        The starting point of the supply chain graph.
+    lcia_method: tuple
+        LCIA method to use when traversing supply chain graph.
+    amount: int
+        Amount of activity to assess.
+    max_level: int
+        Maximum depth to traverse.
+    cutoff: float
+        Fraction of total score to use as cutoff when deciding whether to traverse deeper and
+        if Monte Carlo simulation should be carried out. mc: bool. Decide if Monte Carlo simulation should
+        carry out. This can take some time. mc_number: int. Iterations of the monte carlo simulations
 
-    Internal args (used during recursion, do not touch): result_list level nodes source target
-    actual_node scores parent_node ... Returns: dictionary of the following lists: sources: list of int
-    regarding the keys from 'nodes' targets: list of int regarding the keys from 'nodes' scores: list of floats/list
-    containing the weight of the links between the nodes from 'nodes'. Monte Carlo results are wrapped in a nested
-    list. nodes: dictionary containing information about the nodes. Keys are int values regarding the source/target
-    values.
+    Internal args (used during recursion, do not touch)
+    ---------------------------------------------------
+    result_list
+    level
+    nodes
+    source
+    target
+    actual_node
+    scores
+    parent_node
+
+    Returns
+    -------
+    dict
+        dictionary of the following lists:
+            sources: list of int regarding the keys from 'nodes'
+            targets: list of int regarding the keys from 'nodes'
+            scores: list of floats/list containing the weight of the links between the nodes from 'nodes'.
+                    Monte Carlo results are wrapped in a nested list. nodes: dictionary containing information
+                    about the nodes. Keys are int values regarding the source/target values.
     """
 
     activity = get_activity(activity)
 
-    nodes, actual_node, parent_node, source, target, scores, lca_obj, total_score, score = check_node(
-        nodes, activity, actual_node, lca_obj, mc, amount, lcia_method, mc_number, total_score, cutoff
+    nodes, actual_node, parent_node, source, target, scores = update_or_create_nodes(
+        nodes, activity, actual_node, parent_node, source, target, scores)
+    lca_obj, total_score, score = calculate_score(
+        activity, lca_obj, mc, amount, lcia_method, mc_number, total_score, cutoff
     )
 
     target.append(parent_node)

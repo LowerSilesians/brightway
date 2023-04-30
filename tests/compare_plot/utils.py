@@ -1,9 +1,9 @@
 import bw2data as bd
-from ..conftest import restore_database
+from ..conftest import restore_database_useeio
 
 
 def sample_1():
-    restore_database()
+    restore_database_useeio()
     methods = list(bd.methods)
 
     window_metal = bd.get_node(name="Metal windows, doors, and architectural products; at manufacturer")

@@ -1,4 +1,3 @@
-from pprint import pprint
 import pytest
 
 from bw_visualization.sankertainpy.utils import (

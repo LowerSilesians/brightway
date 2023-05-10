@@ -24,7 +24,7 @@ result.show()
 
 ## Visualization
 
-snakertrainpy example:
+sankertainpy example:
 ![image info](sample_pictures/example_diagram.png)
 
 

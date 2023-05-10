@@ -3,8 +3,6 @@
 end-before: <!-- github-only -->
 ---
 ```
-Brightway Visualization Documentation
-=====================================
 
 [license]: license
 [contributor guide]: contributing

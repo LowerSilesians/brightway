@@ -45,7 +45,7 @@ def add_emissions(i, data, label_list, upstream, downstream):
 
 
 def calc_emissions(data, label_list):
-    # iterate through nodes and link emissions to aditional node
+    # iterate through nodes and link emissions to additional node
     label_list.append('Emissions')
     upstream = len(label_list) - 1
     label_list.append('Emissions downstream')
@@ -61,22 +61,20 @@ def calc_emissions(data, label_list):
 def calc_quantile_flows(data, cutoff, barrier_free):
     # Split flows with list of Monte Carlo datas into different quantiles
     total_score = np.mean(data['scores'][0])
+    cmap = matplotlib.cm.get_cmap('RdYlGn')  # PRGn#RdYlGn
     if barrier_free:
         cmap = matplotlib.cm.get_cmap('BrBG')  # PRGn#RdYlGn
-    else:
-        cmap = matplotlib.cm.get_cmap('RdYlGn')  # PRGn#RdYlGn
     cmap_basic = matplotlib.cm.get_cmap('Blues')
     quantiles = np.arange(0.125, 0.925, 0.05)
     # neg_quantiles= np.arange(0.9,0.9,0.1)
     new_targets, new_sources, new_scores, colors = [], [], [], []
     hoverlabel = []
     for i, flow in enumerate(data['scores']):
+        if np.mean(flow) <= 0:
+            act_quantiles = np.flip(quantiles)
+        else:
+            act_quantiles = quantiles
         if isinstance(flow, list) and abs(np.mean(flow) / total_score) > cutoff:
-            if np.mean(flow) <= 0:
-                act_quantiles = np.flip(quantiles)
-            else:
-                act_quantiles = quantiles
-
             old_qu_score = 0
             for _, qu in enumerate(act_quantiles):
 
@@ -102,7 +100,8 @@ def calc_quantile_flows(data, cutoff, barrier_free):
             new_targets.append(data['targets'][i])
             new_sources.append(data['sources'][i])
             colors.append('rgba' + str(cmap_basic(0.5, 0.6)))
-            hoverlabel.append(f'score without MonteCarlo calculation ({round(np.quantile(flow, qu), 4)})')
+            for _, qu in enumerate(act_quantiles):
+                hoverlabel.append(f'score without MonteCarlo calculation ({round(np.quantile(flow, qu), 4)})')
     new_data = {'targets': new_targets, 'sources': new_sources, 'scores': new_scores, 'nodes': data['nodes'],
                 'colors': colors, 'metadata': data['metadata']}
     return new_data, hoverlabel
@@ -192,6 +191,7 @@ def generate_sankey(data, type=1, cutoff=0.05, emissions=True, method='', barrie
 
     Background: https://doi.org/10.1016/j.cola.2019.03.002
     """
+    print(data)
     data['metadata'] = {'method': method, 'activity': data['nodes'][0]['name']}
 
     data, label_list, hoverlabel = adjust_data(data, type, cutoff, emissions, barrier_free)

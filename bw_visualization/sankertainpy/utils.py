@@ -4,92 +4,53 @@ import numpy as np
 from bw2data import get_activity
 
 
-def check_node(__nodes, activity, __actual_node, _lca_obj, mc, amount, lcia_method, mc_number, _total_score, cutoff,
-               __parent_node, __source, __target, __scores):
-    if __nodes is None:
-        __nodes = {0: {"act": activity, 'name': f"{activity['name']}, {activity['location']}"},
-                   1: {"act": activity, 'name': f"{activity['name']}, {activity['location']}"}}
-        __actual_node = 1
-        __parent_node = 0
-        __source = []
-        __target = []
-        __scores = []
+def update_or_create_nodes(nodes, activity, actual_node, parent_node, source, target, scores):
+    if nodes is None:
+        nodes = {0: {"act": activity, 'name': f"{activity['name']}, {activity['location']}"},
+                 1: {"act": activity, 'name': f"{activity['name']}, {activity['location']}"}}
+        actual_node = 1
+        parent_node = 0
+        source = []
+        target = []
+        scores = []
     else:
-        __nodes[__actual_node] = {"act": activity, 'name': f"{activity['name']}, {activity['location']}"}
+        nodes[actual_node] = {"act": activity, 'name': f"{activity['name']}, {activity['location']}"}
 
-    if _lca_obj is None:
+    return nodes, actual_node, parent_node, source, target, scores
+
+
+def calculate_score(activity, lca_obj, mc, amount, lcia_method, mc_number, total_score, cutoff):
+    if lca_obj is None:
         if mc:
-            _lca_obj = bc.LCA({activity: amount}, lcia_method)
-            _lca_obj.lci()
-            _lca_obj.lcia()
-            mc_result = [_lca_obj.score for _ in zip(range(mc_number), _lca_obj)]
-            _total_score = np.median(mc_result)
+            lca_obj = bc.LCA({activity: amount}, lcia_method, use_distributions=True)
+            lca_obj.lci()
+            lca_obj.lcia()
+            mc_result = [lca_obj.score for _ in zip(range(mc_number), lca_obj)]
+            total_score = np.median(mc_result)
             score = mc_result
 
         else:
-            _lca_obj = bc.LCA({activity: amount}, lcia_method)
-            _lca_obj.lci()
-            _lca_obj.lcia()
-            _total_score = _lca_obj.score
-            score = _total_score
+            lca_obj = bc.LCA({activity: amount}, lcia_method)
+            lca_obj.lci()
+            lca_obj.lcia()
+            total_score = lca_obj.score
+            score = total_score
 
-    elif _total_score is None:
+    elif total_score is None:
         raise ValueError
     else:
         if mc:
-            _lca_obj.redo_lcia({activity.id: amount})
-            score = _lca_obj.score
-            if abs(score) > abs(_total_score * cutoff):
-                _lca_obj.redo_lcia({activity.id: amount})
-                score = [_lca_obj.score for _ in zip(range(mc_number), _lca_obj)]
+            lca_obj.redo_lcia({activity.id: amount})
+            score = lca_obj.score
+            if abs(score) > abs(total_score * cutoff):
+                lca_obj.redo_lcia({activity.id: amount})
+                score = [lca_obj.score for _ in zip(range(mc_number), lca_obj)]
 
         else:
-            _lca_obj.redo_lcia({activity.id: amount})
-            score = _lca_obj.score
-    return score, __parent_node, __source, __target, __scores
+            lca_obj.redo_lcia({activity.id: amount})
+            score = lca_obj.score
 
-
-def check_max_level(__level, max_level, _lca_obj, _total_score, cutoff, activity, __actual_node, lcia_method,
-                    amount, mc, mc_number, __result_list, __nodes, __source, __target, __scores):
-    if __level < max_level and abs(_lca_obj.score) > abs(_total_score * cutoff):
-        prod_exchanges = list(activity.production())
-        if not prod_exchanges:
-            prod_amount = 1
-        elif len(prod_exchanges) > 1:
-            warn(f"Hit multiple production exchanges for {activity}; aborting in this branch")
-            return
-        else:
-            prod_amount = _lca_obj.technosphere_matrix[
-                _lca_obj.dicts.product[prod_exchanges[0].input.id],
-                _lca_obj.dicts.activity[prod_exchanges[0].output.id],
-            ]
-        actual_node_static = __actual_node
-
-        for exc in activity.technosphere():
-            if exc.input.id == exc.output.id:
-                continue
-
-            tm_amount = exc["amount"]
-
-            __target, __source, __scores, __nodes, __actual_node = recursive_calculation_to_plotly(
-                activity=exc.input,
-                lcia_method=lcia_method,
-                amount=amount * tm_amount / prod_amount,
-                max_level=max_level,
-                cutoff=cutoff,
-                mc=mc,
-                mc_number=mc_number,
-                __result_list=__result_list,
-                _lca_obj=_lca_obj,
-                _total_score=_total_score,
-                __level=__level + 1,
-                __nodes=__nodes,
-                __source=__source,
-                __target=__target,
-                __actual_node=__actual_node + 1,
-                __scores=__scores,
-                __parent_node=actual_node_static,
-            )
+    return lca_obj, total_score, score
 
 
 def recursive_calculation_to_plotly(
@@ -100,74 +61,109 @@ def recursive_calculation_to_plotly(
         cutoff=1e-2,
         mc=False,
         mc_number=100,
-        _lca_obj=None,
-        _total_score=None,
-        __result_list=None,
-        __level=0,
-        __nodes=None,
-        __source=None,
-        __target=None,
-        __actual_node=None,
-        __scores=None,
-        __parent_node=None,
+        lca_obj=None,
+        total_score=None,
+        result_list=None,
+        level=0,
+        nodes=None,
+        source=None,
+        target=None,
+        actual_node=None,
+        scores=None,
+        parent_node=None,
 
 ):
-    """Traverse a supply chain graph, and calculate the LCA scores of each component. Adds a dictionary to
-    ``result_list`` of the form:
+    """Traverse a supply chain graph, and calculate the LCA scores of each component.
+    Adds a dictionary to result_list of the form:
 
     Parameters
     ----------
-    activity: ``Activity``
-        The starting point of the supply chain graph. lcia_method: tuple.
+    activity: Activity
+        The starting point of the supply chain graph.
+    lcia_method: tuple
         LCIA method to use when traversing supply chain graph.
     amount: int
-        Amount of ``activity`` to assess.
+        Amount of activity to assess.
     max_level: int
-        Maximum depth to traverse
+        Maximum depth to traverse.
     cutoff: float
         Fraction of total score to use as cutoff when deciding whether to traverse deeper and
-        if Monte Carlo simulation should be carried out.
-    mc: bool
-        Decide if Monte Carlo simulation shouldcarried out. This can take some time.
-    mc_number: int
-        Iterations of the monte carlo simulations
+        if Monte Carlo simulation should be carried out. mc: bool. Decide if Monte Carlo simulation should
+        carry out. This can take some time. mc_number: int. Iterations of the monte carlo simulations
 
     Internal args (used during recursion, do not touch)
-    -------------
-    __result_list
-    __level
-    __nodes
-    __source
-    __target
-    __actual_node
-    __scores
-    __parent_node
+    ---------------------------------------------------
+    result_list
+    level
+    nodes
+    source
+    target
+    actual_node
+    scores
+    parent_node
 
     Returns
     -------
     dict
         dictionary of the following lists:
-        - sources: list of int regarding the keys from 'nodes'
-        - targets: list of int regarding the keys from 'nodes'
-        - scores: list of floats/list containing the weight of the links between the
-            nodes from 'nodes'. Monte Carlo results are wrapped in a nested list.
-        - nodes: dictionary containing information about the nodes.
-            Keys are int values regarding the source/target values.
+            sources: list of int regarding the keys from 'nodes'
+            targets: list of int regarding the keys from 'nodes'
+            scores: list of floats/list containing the weight of the links between the nodes from 'nodes'.
+                    Monte Carlo results are wrapped in a nested list. nodes: dictionary containing information
+                    about the nodes. Keys are int values regarding the source/target values.
     """
 
     activity = get_activity(activity)
 
-    score, __parent_node, __source, __target, __scores = check_node(__nodes, activity, __actual_node, _lca_obj, mc,
-                                                                    amount, lcia_method, mc_number, _total_score,
-                                                                    cutoff, __parent_node, __source, __target, __scores)
+    nodes, actual_node, parent_node, source, target, scores = update_or_create_nodes(
+        nodes, activity, actual_node, parent_node, source, target, scores)
+    lca_obj, total_score, score = calculate_score(
+        activity, lca_obj, mc, amount, lcia_method, mc_number, total_score, cutoff
+    )
 
-    __target.append(__parent_node)
-    __source.append(__actual_node)
-    __scores.append(score)
+    target.append(parent_node)
+    source.append(actual_node)
+    scores.append(score)
 
-    check_max_level(__level, max_level, _lca_obj, _total_score, cutoff, activity, __actual_node, lcia_method, amount,
-                    mc, mc_number, __result_list, __nodes, __source, __target, __scores)
+    if level < max_level and abs(lca_obj.score) > abs(total_score * cutoff):
+        prod_exchanges = list(activity.production())
+        if not prod_exchanges:
+            prod_amount = 1
+        elif len(prod_exchanges) > 1:
+            warn(f"Hit multiple production exchanges for {activity}; aborting in this branch")
+            return None
+        else:
+            prod_amount = lca_obj.technosphere_matrix[
+                lca_obj.dicts.product[prod_exchanges[0].input.id],
+                lca_obj.dicts.activity[prod_exchanges[0].output.id],
+            ]
+        actual_node_static = actual_node
 
-    if __level == 0:
-        return {'targets': __target, 'sources': __source, 'scores': __scores, 'nodes': __nodes}
-    return __target, __source, __scores, __nodes, __actual_node
+        for exc in activity.technosphere():
+            if exc.input.id == exc.output.id:
+                continue
+
+            tm_amount = exc["amount"]
+
+            target, source, scores, nodes, actual_node = recursive_calculation_to_plotly(
+                activity=exc.input,
+                lcia_method=lcia_method,
+                amount=amount * tm_amount / prod_amount,
+                max_level=max_level,
+                cutoff=cutoff,
+                mc=mc,
+                mc_number=mc_number,
+                result_list=result_list,
+                lca_obj=lca_obj,
+                total_score=total_score,
+                level=level + 1,
+                nodes=nodes,
+                source=source,
+                target=target,
+                actual_node=actual_node + 1,
+                scores=scores,
+                parent_node=actual_node_static,
+            )
+    if level == 0:
+        return {'targets': target, 'sources': source, 'scores': scores, 'nodes': nodes}
+    return target, source, scores, nodes, actual_node

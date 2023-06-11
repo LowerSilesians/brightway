@@ -5,6 +5,26 @@ from bw2data import get_activity
 
 
 def update_or_create_nodes(nodes, activity, actual_node, parent_node, source, target, scores):
+    """Update or create nodes dictionary
+
+    Parameters
+    ----------
+    nodes:
+        dictionary containing information about the nodes. Keys are int values
+        regarding the source/target values.
+    activity: Activity
+        The starting point of the supply chain graph.
+    actual_node : int
+        actual node
+    parent_node: int
+        parent node
+    source: list
+        list of int regarding the keys from 'nodes'
+    target: list
+        list of int regarding the keys from 'nodes'
+    scores: list
+        list of floats/list containing the weight of the links between the nodes from 'nodes'
+    """
     if nodes is None:
         nodes = {0: {"act": activity, 'name': f"{activity['name']}, {activity['location']}"},
                  1: {"act": activity, 'name': f"{activity['name']}, {activity['location']}"}}
@@ -20,6 +40,28 @@ def update_or_create_nodes(nodes, activity, actual_node, parent_node, source, ta
 
 
 def calculate_score(activity, lca_obj, mc, amount, lcia_method, mc_number, total_score, cutoff):
+    """Calculate LCA score
+
+    Parameters
+    ----------
+    activity: Activity
+        The starting point of the supply chain graph.
+    lca_obj : LCA
+        an LCA object
+    mc: bool
+        wether Monte Carlo simulation should carry out or not
+    amount: int
+        Amount of activity to assess.
+    lcia_method: tuple
+        LCIA method to use when traversing supply chain graph.
+    mc_number: int
+        Iterations of the monte carlo simulations
+    total_score:
+        LCA total score
+    cutoff: float
+        Fraction of total score to use as cutoff when deciding whether to traverse deeper and
+        if Monte Carlo simulation should be carried out
+    """
     if lca_obj is None:
         if mc:
             lca_obj = bc.LCA({activity: amount}, lcia_method, use_distributions=True)
@@ -88,8 +130,11 @@ def recursive_calculation_to_plotly(
         Maximum depth to traverse.
     cutoff: float
         Fraction of total score to use as cutoff when deciding whether to traverse deeper and
-        if Monte Carlo simulation should be carried out. mc: bool. Decide if Monte Carlo simulation should
-        carry out. This can take some time. mc_number: int. Iterations of the monte carlo simulations
+        if Monte Carlo simulation should be carried out.
+    mc: bool
+        wether Monte Carlo simulation should carry out or not.
+    mc_number: int
+        Iterations of the monte carlo simulations.
 
     Internal args (used during recursion, do not touch)
     ---------------------------------------------------
@@ -109,8 +154,9 @@ def recursive_calculation_to_plotly(
             sources: list of int regarding the keys from 'nodes'
             targets: list of int regarding the keys from 'nodes'
             scores: list of floats/list containing the weight of the links between the nodes from 'nodes'.
-                    Monte Carlo results are wrapped in a nested list. nodes: dictionary containing information
-                    about the nodes. Keys are int values regarding the source/target values.
+                    Monte Carlo results are wrapped in a nested list.
+            nodes: dictionary containing information about the nodes. Keys are int values
+                   regarding the source/target values.
     """
 
     activity = get_activity(activity)

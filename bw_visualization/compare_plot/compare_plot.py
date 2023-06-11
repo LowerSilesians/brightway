@@ -1,5 +1,7 @@
 import warnings
 import textwrap
+from typing import List
+
 import pandas as pd
 import numpy as np
 import bw2data as bd
@@ -23,8 +25,13 @@ ColorSeqOrg = sns.color_palette('Oranges', 5)
 
 # the 2 following methods come directly from the library lca_algebraic from stats.py :
 # https://github.com/oie-mines-paristech/lca_algebraic/blob/master/lca_algebraic/stats.py
-def _display_tabs(titles_and_contentf):
-    """Generate tabs"""
+def _display_tabs(titles_and_contentf: List[tuple]):
+    """Generate tabs
+
+    Parameters
+    ----------
+    titles_and_contentf : a list of tuples each containing title and callable visualization
+    """
     tabs = []
     titles = []
     for title, content_f in titles_and_contentf:
@@ -42,7 +49,12 @@ def _display_tabs(titles_and_contentf):
 
 
 def display_with_export_button(df):
-    """Display dataframe with option to export"""
+    """Display dataframe with option to export
+
+    Parameters
+    ----------
+    df : Dataframe to be displayed
+    """
 
     button = widgets.Button(description="Export data")
     button.style.button_color = "lightgray"
@@ -61,6 +73,15 @@ def display_with_export_button(df):
 
 
 def graph_method_ref(df, reference_category=None, sharex=True, func_unit="kg"):
+    """Compare LCAs on provided reference category
+
+    Parameters
+    ----------
+    df : a DataFrame with the impact score for each categories and each activities
+    reference_category : method used for normalization (None by default)
+    sharex: Shared X axes ? True by default
+    func_unit : functionnal unit (kg by default)
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         fig, axes = plt.subplots(figsize=(20, 10))
@@ -120,6 +141,16 @@ def graph_method_ref(df, reference_category=None, sharex=True, func_unit="kg"):
 
 
 def graph_multi(df, methods, sharex=True, cols=2, func_unit="kg"):
+    """Compare LCAs on several impact categories
+
+    Parameters
+    ----------
+    df : a DataFrame with the impact score for each categories and each activities
+    methods : set of methods
+    sharex: Shared X axes ? True by default
+    cols: number of columns to plot
+    func_unit : functionnal unit (kg by default)
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         nb_rows = int(np.ceil(len(methods) / cols))
@@ -181,22 +212,22 @@ def graph_multi(df, methods, sharex=True, cols=2, func_unit="kg"):
         display_with_export_button(df)
 
 
-def compare(fu, methods, reference_category=None, sharex=True, cols=2, func_unit="kg"):
+def compare(df, methods, reference_category=None, sharex=True, cols=2, func_unit="kg"):
     """Compare several activities for several impact categories
 
     Parameters
     ----------
-    fu : dictionary of the activity/activities to compare associated with its/their associated reference flow/s
-    methods : set of methods,
+    df : a DataFrame with the impact score for each categories and each activities
+    methods : set of methods
     reference_category : method used for normalization (None by default)
     sharex: Shared X axes ? True by default
     cols: number of columns to plot
     func_unit : functionnal unit (kg by default)
     """
+    df = df.copy(deep=True)
+
     if reference_category is None:  # if no reference method is given, the first method is chosen by default.
         reference_category = methods[0]
-
-    df = lca_comparison(fu, methods, method_ref=reference_category)
 
     def compare_graph_method_ref():
         graph_method_ref(df, reference_category, sharex, func_unit)
@@ -210,10 +241,20 @@ def compare(fu, methods, reference_category=None, sharex=True, cols=2, func_unit
     ])
 
 
-def contributions(act, method, limit, df, df_color, reference_category):
+def contributions(df_contrib, act, method, df, df_color, reference_category):
+    """Compare several activities for several impact categories
+
+    Parameters
+    ----------
+    df_contrib : a Dataframe with the main contributors of the lca score
+    act : activity to be analyzed
+    methods : set of impact category methods
+    df : a DataFrame with the impact score for each categories and each activities
+    df_color: a Dataframe to colorize each method
+    reference_category : method used for normalization (None by default)
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        df_contrib = contributions_df(act, method, limit=limit)
 
         # Instead of keys we prefer using  activity names
         names = []
@@ -221,21 +262,18 @@ def contributions(act, method, limit, df, df_color, reference_category):
             names.append(bd.get_activity(c)['name'])
 
         # Add a row for the other contributors
-        # pylint: disable=unsubscriptable-object
         df_contrib.loc['Others'] = [df[method][act['name']] - df_contrib[c].sum() for c in df_contrib.columns]
 
         # Add the names
-        df_contrib['Activity'] = names + ['Others']  # pylint: disable=unsupported-assignment-operation
+        df_contrib['Activity'] = names + ['Others']
 
         fig, axes = plt.subplots(figsize=(20, 10))
         sns.set_style("white")
         plt.subplots_adjust(None, None, None, None, 0.5, 0.5)
-        # pylint: disable=unsubscriptable-object
         plt.barh(df_contrib.index, df_contrib[method], alpha=0.8, color=df_color[method])
         axes.set_title(f'Contribution analysis of LCA on {method[1]}', fontsize=20)
         axes.set_xlabel(bd.Method(method).name[1], fontsize=20)
         axes.set_xticks([])
-        # pylint: disable=unsubscriptable-object
         axes.set_yticks(range(len(df_contrib)),
                         ['\n'.join(textwrap.wrap(label, 40)) for label in df_contrib['Activity']], fontsize=15)
         # add each score of components
@@ -281,22 +319,22 @@ def contributions(act, method, limit, df, df_color, reference_category):
         display_with_export_button(df_contrib)
 
 
-def hotspots(fu, methods, reference_category=None, limit=0.05, func_unit="kg"):
+def hotspots(df, fu, methods, reference_category=None, limit=0.05):
     """Plot the contribution analysis of an activity for several impact categories and display the associated DataFrame
     ready to export. If the number of activities is too large, the figure is not displayed.
 
     Parameters
     ----------
+    df : a DataFrame with the impact score for each categories and each activities
     fu : dictionary of the single activity with its associated amount
     methods : set of impact category methods
     reference_category : method used for normalization (None by default)
     limit: relative threshold of the total lca score from which contributors are displayed (0.05 by default)
-    func_unit : functionnal unit (kg by default)
     """
+    df = df.copy(deep=True)
+
     if reference_category is None:  # if no reference method is given, the first method is chosen by default.
         reference_category = methods[0]
-
-    df = lca_comparison(fu, methods, method_ref=reference_category)
 
     # to have one color by method, we define a dataframe:
     df_color = pd.DataFrame(index=methods, data=[COLORS[c] for c in range(len(methods))]).T
@@ -306,10 +344,20 @@ def hotspots(fu, methods, reference_category=None, limit=0.05, func_unit="kg"):
     else:
         for act in list(fu.keys()):
             _display_tabs([("on " + str(i[1]),
-                            contributions(act, i, limit, df, df_color, reference_category)) for i in methods])
+                            contributions(contributions_df(act, i, limit=limit),
+                                          act, i, df, df_color, reference_category)) for i in methods])
 
 
 def heatmap(df_norm, methods, func_unit):
+    """Plot the heatmap for comparison of different LCAs and display the associated DataFrame
+    ready to export.
+
+    Parameters
+    ----------
+    df_norm : impact score DataFrame with normalized results for each impact category
+    methods : set of impact category methods
+    func_unit : functionnal unit (kg by default)
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         fig, axes = plt.subplots(figsize=(20, 10))
@@ -328,6 +376,15 @@ def heatmap(df_norm, methods, func_unit):
 
 
 def transfer_impact(fu, act_ref, df_norm, methods):
+    """Plot impact transfer
+
+    Parameters
+    ----------
+    fu : dictionary of activities with the associated amount
+    act_ref: activity which has the highest score the reference method
+    df_norm : impact score DataFrame with normalized results for each impact category
+    methods : set of impact category methods
+    """
     act_transfert = [act for act in fu.keys() if act != act_ref][0]
     df_transfer = df_norm[act_transfert['name']] * 100 - df_norm[act_ref['name']] * 100  # %
     df_transfer = df_transfer.sort_values()
@@ -382,13 +439,20 @@ def transfer_impact(fu, act_ref, df_norm, methods):
         plt.show()
 
 
-def reference_contributions(act, reference_category, limit, methods, cols):
+def reference_contributions(df, act, methods, cols):
+    """Analyze contributions for the reference impact category
+
+    Parameters
+    ----------
+    df : a DataFrame with the impact score for each categories and each activities
+    act : activity to be analyzed
+    methods : set of impact category methods
+    cols: number of columns to plot
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
         # Get the top contributors for the reference impact category
-        df = contributions_df(act, reference_category, limit=limit, limit_type='number', group_by_other=False,
-                              norm=True)
         top_contributors_reference = list(df.index)
 
         # Compute the contributors for the other impact categories and gather it into a dictionnary
@@ -468,11 +532,12 @@ def reference_contributions(act, reference_category, limit, methods, cols):
             plt.show()
 
 
-def impact_transfer(fu, methods, reference_category=None, limit=5, cols=3, func_unit="kg"):
+def impact_transfer(df, fu, methods, reference_category=None, limit=5, cols=3, func_unit="kg"):
     """Plot the variations of the contribution of the top processes (for the reference method) for each impact category
 
     Parameters
     ----------
+    df : a DataFrame with the impact score for each categories and each activities
     fu : dictionary of activities with the associated amount
     methods : set of impact category methods
     reference_category : method used for normalization (None by default)
@@ -480,9 +545,10 @@ def impact_transfer(fu, methods, reference_category=None, limit=5, cols=3, func_
     cols: number of columns to plot
     func_unit : functionnal unit (kg by default)
     """
+    df = df.copy(deep=True)
+
     if reference_category is None:  # if no reference method is given, the first method is chosen by default.
         reference_category = methods[0]
-    df = lca_comparison(fu, methods, method_ref=reference_category)
     act_ref = act_topscore(fu, reference_category)
     df_norm = df.T.apply(lambda x: x / x.max(), axis=1)  # to normalize the results for each impact category
 
@@ -493,15 +559,17 @@ def impact_transfer(fu, methods, reference_category=None, limit=5, cols=3, func_
         transfer_impact(fu, act_ref, df_norm, methods)
 
     def impact_transfer_reference_contributions(act):
-        reference_contributions(act, reference_category, limit, methods, cols)
+        df = contributions_df(act, reference_category, limit=limit, limit_type='number',
+                              group_by_other=False, norm=True)
+        reference_contributions(df, act, methods, cols)
 
     if len(fu) == 2:
         _display_tabs([("Impact transfer", impact_transfer_transfer_impact), ("Heatmap", impact_transfer_heatmap)] +
-                      [(j['name'], lambda k=j: impact_transfer_reference_contributions(k)) for j in list(fu.keys())]
+                      [(j['name'], lambda x=j: impact_transfer_reference_contributions(x)) for j in list(fu.keys())]
                       )
     else:
         _display_tabs([("Heatmap", impact_transfer_heatmap)] +
-                      [(j['name'], lambda k=j: impact_transfer_reference_contributions(k)) for j in list(fu.keys())]
+                      [(j['name'], lambda x=j: impact_transfer_reference_contributions(x)) for j in list(fu.keys())]
                       )
 
 
@@ -523,6 +591,8 @@ def lca_graphic(fu, methods, reference_category=None, func_unit="kg"):
     if reference_category is None:  # if no reference method is given, the first method is chosen by default.
         reference_category = methods[0]
 
-    compare(fu, methods, func_unit=func_unit)
-    impact_transfer(fu, methods, reference_category=reference_category, limit=5, func_unit=func_unit, cols=2)
-    hotspots(fu, methods, limit=0.02)
+    df = lca_comparison(fu, methods, method_ref=reference_category)
+
+    compare(df, methods, func_unit=func_unit)
+    impact_transfer(df, fu, methods, reference_category=reference_category, limit=5, func_unit=func_unit, cols=2)
+    hotspots(df, fu, methods, limit=0.02)

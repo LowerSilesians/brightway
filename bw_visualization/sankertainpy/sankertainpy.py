@@ -4,6 +4,22 @@ import matplotlib
 
 
 def cut_off_flows(data, label_list, cutoff):
+    """Calculate cutoff flows
+
+    Parameters
+    ----------
+    data : dict
+        - 'sources': list of int regarding the source nodes from 'nodes'
+        - 'targets': list of int regarding the target nodes from 'nodes'
+        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+            Monte Carlo results are wrapped in a nested list.
+        - 'nodes': dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': dictionary containing method and activity information
+    label_list: list
+        list of node names
+    cutoff: float
+        Bundle links lower than cutoff value to one target node.
+    """
     # Combine flows < cutoff to one node:
     total_score = np.mean(data['scores'][0])
     label_list.append('Activities< cutoff')
@@ -21,6 +37,26 @@ def cut_off_flows(data, label_list, cutoff):
 
 
 def add_emissions(i, data, label_list, upstream, downstream):
+    """Add emissions
+
+    Parameters
+    ----------
+    i : int
+        node key
+    data : dict
+        - 'sources': list of int regarding the source nodes from 'nodes'
+        - 'targets': list of int regarding the target nodes from 'nodes'
+        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+            Monte Carlo results are wrapped in a nested list.
+        - 'nodes': dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': dictionary containing method and activity information
+    label_list: list
+        list of node names
+    upstream: int
+        emissions upstream
+    downstream: int
+        emissions downstream
+    """
     inp = 0
     out = 0
     for n, scr in enumerate(data['scores']):
@@ -45,6 +81,20 @@ def add_emissions(i, data, label_list, upstream, downstream):
 
 
 def calc_emissions(data, label_list):
+    """Calculate emissions
+
+    Parameters
+    ----------
+    data : dict
+        - 'sources': list of int regarding the source nodes from 'nodes'
+        - 'targets': list of int regarding the target nodes from 'nodes'
+        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+            Monte Carlo results are wrapped in a nested list.
+        - 'nodes': dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': dictionary containing method and activity information
+    label_list: list
+        list of node names
+    """
     # iterate through nodes and link emissions to additional node
     label_list.append('Emissions')
     upstream = len(label_list) - 1
@@ -59,6 +109,22 @@ def calc_emissions(data, label_list):
 
 
 def calc_quantile_flows(data, cutoff, barrier_free):
+    """Calculate quantile flows
+
+    Parameters
+    ----------
+    data : dict
+        - 'sources': list of int regarding the source nodes from 'nodes'
+        - 'targets': list of int regarding the target nodes from 'nodes'
+        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+            Monte Carlo results are wrapped in a nested list.
+        - 'nodes': dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': dictionary containing method and activity information
+    cutoff: float
+        Bundle links lower than cutoff value to one target node.
+    barrier_free: bool
+        whether to have barrier or not on figures
+    """
     # Split flows with list of Monte Carlo datas into different quantiles
     total_score = np.mean(data['scores'][0])
     cmap = matplotlib.cm.get_cmap('RdYlGn')  # PRGn#RdYlGn
@@ -108,6 +174,22 @@ def calc_quantile_flows(data, cutoff, barrier_free):
 
 
 def calc_colors(data, cutoff, barrier_free):
+    """Calculate colors
+
+    Parameters
+    ----------
+    data : dict
+        - 'sources': list of int regarding the source nodes from 'nodes'
+        - 'targets': list of int regarding the target nodes from 'nodes'
+        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+            Monte Carlo results are wrapped in a nested list.
+        - 'nodes': dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': dictionary containing method and activity information
+    cutoff: float
+        Bundle links lower than cutoff value to one target node.
+    barrier_free: bool
+        whether to have barrier or not on figures
+    """
     total_score = np.mean(data['scores'][0])
     if barrier_free:
         cmap_mc = matplotlib.cm.get_cmap('copper')
@@ -142,17 +224,48 @@ def calc_colors(data, cutoff, barrier_free):
 
 
 def flip_negativ_values(data):
+    """Flip negative values in data
+
+    Parameters
+    ----------
+    data : dict
+        - 'sources': list of int regarding the source nodes from 'nodes'
+        - 'targets': list of int regarding the target nodes from 'nodes'
+        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+            Monte Carlo results are wrapped in a nested list.
+        - 'nodes': dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': dictionary containing method and activity information
+    """
     for i, flow in enumerate(data['scores']):
         if flow <= 0:
-            # p= data['targets'][i]
-            # data['targets'][i]= data['sources'][i]
-            # data['sources'][i]= p
             data['scores'][i] = abs(flow)
 
     return data
 
 
 def adjust_data(data, type, cutoff, emission, barrier_free):
+    """Adjust data
+
+    Parameters
+    ----------
+    data : dict
+        - 'sources': list of int regarding the source nodes from 'nodes'
+        - 'targets': list of int regarding the target nodes from 'nodes'
+        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+            Monte Carlo results are wrapped in a nested list.
+        - 'nodes': dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': dictionary containing method and activity information
+    type: int
+        0 for visualize the uncertainty in form of colored intensity flows in relation to the standard deviation.
+        Relative to the highest standard deviation of the links. 1 for visualize the uncertainty by splitting each
+        link in several links regarding the ire quantiles with a color scale from low -green to high -red.
+    cutoff: float
+        Bundle links lower than cutoff value to one target node.
+    emissions: bool
+        activate or deactivate the emission links. They can be distracting if very low and not relevant.
+    barrier_free: bool
+        whether to have barrier or not on figures
+    """
     label_list = [data['nodes'][nod]['name'] for nod in data['nodes']]
 
     data, label_list = cut_off_flows(data, label_list, cutoff)
@@ -188,7 +301,10 @@ def generate_sankey(data, type=1, cutoff=0.05, emissions=True, method='', barrie
         Bundle links lower than cutoff value to one target node.
     emissions: bool
         activate or deactivate the emission links. They can be distracting if very low and not relevant.
-
+    method: str
+        impact category method
+    barrier_free: bool
+        whether to have barrier or not on figures
     Background: https://doi.org/10.1016/j.cola.2019.03.002
     """
     print(data)

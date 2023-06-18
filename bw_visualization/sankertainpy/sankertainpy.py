@@ -4,21 +4,27 @@ import matplotlib
 
 
 def cut_off_flows(data, label_list, cutoff):
-    """Calculate cutoff flows
+    """
+    Calculate cutoff flows
 
     Parameters
     ----------
     data : dict
-        - 'sources': list of int regarding the source nodes from 'nodes'
-        - 'targets': list of int regarding the target nodes from 'nodes'
-        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+        - 'sources': List of int regarding the source nodes from 'nodes'.
+        - 'targets': List of int regarding the target nodes from 'nodes'.
+        - 'scores': List of floats/list containing the weight of the links between the nodes from 'nodes'.
             Monte Carlo results are wrapped in a nested list.
-        - 'nodes': dictionary containing information about the nodes. Keys are int values.
-        - 'metadata': dictionary containing method and activity information
+        - 'nodes': Dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': Dictionary containing method and activity information.
     label_list: list
-        list of node names
+        List of node names.
     cutoff: float
         Bundle links lower than cutoff value to one target node.
+
+    Returns
+    -------
+    tuple
+        data with appended cutoff flows.
     """
     # Combine flows < cutoff to one node:
     total_score = np.mean(data['scores'][0])
@@ -37,25 +43,31 @@ def cut_off_flows(data, label_list, cutoff):
 
 
 def add_emissions(i, data, label_list, upstream, downstream):
-    """Add emissions
+    """
+    Add emissions
 
     Parameters
     ----------
     i : int
-        node key
+        Node key.
     data : dict
-        - 'sources': list of int regarding the source nodes from 'nodes'
-        - 'targets': list of int regarding the target nodes from 'nodes'
-        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+        - 'sources': List of int regarding the source nodes from 'nodes'.
+        - 'targets': List of int regarding the target nodes from 'nodes'.
+        - 'scores': List of floats/list containing the weight of the links between the nodes from 'nodes'.
             Monte Carlo results are wrapped in a nested list.
-        - 'nodes': dictionary containing information about the nodes. Keys are int values.
-        - 'metadata': dictionary containing method and activity information
+        - 'nodes': Dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': Dictionary containing method and activity information.
     label_list: list
-        list of node names
+        List of node names.
     upstream: int
-        emissions upstream
+        Emissions upstream.
     downstream: int
-        emissions downstream
+        Emissions downstream.
+
+    Returns
+    -------
+    tuple
+        data with appended emissions
     """
     inp = 0
     out = 0
@@ -81,19 +93,25 @@ def add_emissions(i, data, label_list, upstream, downstream):
 
 
 def calc_emissions(data, label_list):
-    """Calculate emissions
+    """
+    Calculate emissions
 
     Parameters
     ----------
     data : dict
-        - 'sources': list of int regarding the source nodes from 'nodes'
-        - 'targets': list of int regarding the target nodes from 'nodes'
-        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+        - 'sources': List of int regarding the source nodes from 'nodes'.
+        - 'targets': List of int regarding the target nodes from 'nodes'.
+        - 'scores': List of floats/list containing the weight of the links between the nodes from 'nodes'.
             Monte Carlo results are wrapped in a nested list.
-        - 'nodes': dictionary containing information about the nodes. Keys are int values.
-        - 'metadata': dictionary containing method and activity information
+        - 'nodes': Dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': Dictionary containing method and activity information.
     label_list: list
-        list of node names
+        List of node names.
+
+    Returns
+    -------
+    tuple
+        data with appended calculated emissions.
     """
     # iterate through nodes and link emissions to additional node
     label_list.append('Emissions')
@@ -109,21 +127,27 @@ def calc_emissions(data, label_list):
 
 
 def calc_quantile_flows(data, cutoff, barrier_free):
-    """Calculate quantile flows
+    """
+    Calculate quantile flows
 
     Parameters
     ----------
     data : dict
-        - 'sources': list of int regarding the source nodes from 'nodes'
-        - 'targets': list of int regarding the target nodes from 'nodes'
-        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+        - 'sources': List of int regarding the source nodes from 'nodes'.
+        - 'targets': List of int regarding the target nodes from 'nodes'.
+        - 'scores': List of floats/list containing the weight of the links between the nodes from 'nodes'.
             Monte Carlo results are wrapped in a nested list.
-        - 'nodes': dictionary containing information about the nodes. Keys are int values.
-        - 'metadata': dictionary containing method and activity information
+        - 'nodes': Dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': Dictionary containing method and activity information.
     cutoff: float
         Bundle links lower than cutoff value to one target node.
     barrier_free: bool
-        whether to have barrier or not on figures
+        whether to have barrier or not on figures.
+
+    Returns
+    -------
+    tuple
+        calculated quantile flows.
     """
     # Split flows with list of Monte Carlo datas into different quantiles
     total_score = np.mean(data['scores'][0])
@@ -174,21 +198,27 @@ def calc_quantile_flows(data, cutoff, barrier_free):
 
 
 def calc_colors(data, cutoff, barrier_free):
-    """Calculate colors
+    """
+    Calculate colors
 
     Parameters
     ----------
     data : dict
-        - 'sources': list of int regarding the source nodes from 'nodes'
-        - 'targets': list of int regarding the target nodes from 'nodes'
-        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+        - 'sources': List of int regarding the source nodes from 'nodes'.
+        - 'targets': List of int regarding the target nodes from 'nodes'.
+        - 'scores': List of floats/list containing the weight of the links between the nodes from 'nodes'.
             Monte Carlo results are wrapped in a nested list.
-        - 'nodes': dictionary containing information about the nodes. Keys are int values.
-        - 'metadata': dictionary containing method and activity information
+        - 'nodes': Dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': Dictionary containing method and activity information.
     cutoff: float
         Bundle links lower than cutoff value to one target node.
     barrier_free: bool
-        whether to have barrier or not on figures
+        Whether to have barrier or not on figures.
+
+    Returns
+    -------
+    tuple
+        Calculated colors.
     """
     total_score = np.mean(data['scores'][0])
     if barrier_free:
@@ -229,12 +259,17 @@ def flip_negativ_values(data):
     Parameters
     ----------
     data : dict
-        - 'sources': list of int regarding the source nodes from 'nodes'
-        - 'targets': list of int regarding the target nodes from 'nodes'
-        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+        - 'sources': List of int regarding the source nodes from 'nodes'.
+        - 'targets': List of int regarding the target nodes from 'nodes'.
+        - 'scores': List of floats/list containing the weight of the links between the nodes from 'nodes'.
             Monte Carlo results are wrapped in a nested list.
-        - 'nodes': dictionary containing information about the nodes. Keys are int values.
-        - 'metadata': dictionary containing method and activity information
+        - 'nodes': Dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': Dictionary containing method and activity information.
+
+    Returns
+    -------
+    dict
+        Data with flipped negative values.
     """
     for i, flow in enumerate(data['scores']):
         if flow <= 0:
@@ -244,17 +279,18 @@ def flip_negativ_values(data):
 
 
 def adjust_data(data, type, cutoff, emission, barrier_free):
-    """Adjust data
+    """
+    Adjust data
 
     Parameters
     ----------
     data : dict
-        - 'sources': list of int regarding the source nodes from 'nodes'
-        - 'targets': list of int regarding the target nodes from 'nodes'
-        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+        - 'sources': List of int regarding the source nodes from 'nodes'.
+        - 'targets': List of int regarding the target nodes from 'nodes'.
+        - 'scores': List of floats/list containing the weight of the links between the nodes from 'nodes'.
             Monte Carlo results are wrapped in a nested list.
-        - 'nodes': dictionary containing information about the nodes. Keys are int values.
-        - 'metadata': dictionary containing method and activity information
+        - 'nodes': Dictionary containing information about the nodes. Keys are int values.
+        - 'metadata': Dictionary containing method and activity information.
     type: int
         0 for visualize the uncertainty in form of colored intensity flows in relation to the standard deviation.
         Relative to the highest standard deviation of the links. 1 for visualize the uncertainty by splitting each
@@ -262,9 +298,14 @@ def adjust_data(data, type, cutoff, emission, barrier_free):
     cutoff: float
         Bundle links lower than cutoff value to one target node.
     emissions: bool
-        activate or deactivate the emission links. They can be distracting if very low and not relevant.
+        Activate or deactivate the emission links. They can be distracting if very low and not relevant.
     barrier_free: bool
-        whether to have barrier or not on figures
+        Whether to have barrier or not on figures.
+
+    Returns
+    -------
+    tuple
+        Adjusted data.
     """
     label_list = [data['nodes'][nod]['name'] for nod in data['nodes']]
 
@@ -288,11 +329,11 @@ def generate_sankey(data, type=1, cutoff=0.05, emissions=True, method='', barrie
     Parameters
     ----------
     data : dict
-        - 'sources': list of int regarding the source nodes from 'nodes'
-        - 'targets': list of int regarding the target nodes from 'nodes'
-        - 'scores': list of floats/list containing the weight of the links between the nodes from 'nodes'.
+        - 'sources': List of int regarding the source nodes from 'nodes'.
+        - 'targets': List of int regarding the target nodes from 'nodes'.
+        - 'scores': List of floats/list containing the weight of the links between the nodes from 'nodes'.
             Monte Carlo results are wrapped in a nested list.
-        - 'nodes': dictionary containing information about the nodes. Keys are int values.
+        - 'nodes': Dictionary containing information about the nodes. Keys are int values.
     type: int
         0 for visualize the uncertainty in form of colored intensity flows in relation to the standard deviation.
         Relative to the highest standard deviation of the links. 1 for visualize the uncertainty by splitting each
@@ -300,12 +341,17 @@ def generate_sankey(data, type=1, cutoff=0.05, emissions=True, method='', barrie
     cutoff: float
         Bundle links lower than cutoff value to one target node.
     emissions: bool
-        activate or deactivate the emission links. They can be distracting if very low and not relevant.
+        Activate or deactivate the emission links. They can be distracting if very low and not relevant.
     method: str
-        impact category method
+        Impact category method.
     barrier_free: bool
-        whether to have barrier or not on figures
+        Whether to have barrier or not on figures.
     Background: https://doi.org/10.1016/j.cola.2019.03.002
+
+    Returns
+    -------
+    tuple
+        Sankey figure.
     """
     print(data)
     data['metadata'] = {'method': method, 'activity': data['nodes'][0]['name']}

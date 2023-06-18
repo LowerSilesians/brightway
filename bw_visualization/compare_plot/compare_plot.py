@@ -26,11 +26,18 @@ ColorSeqOrg = sns.color_palette('Oranges', 5)
 # the 2 following methods come directly from the library lca_algebraic from stats.py :
 # https://github.com/oie-mines-paristech/lca_algebraic/blob/master/lca_algebraic/stats.py
 def _display_tabs(titles_and_contentf: List[tuple]):
-    """Generate tabs
+    """
+    Generate tabs
 
     Parameters
     ----------
-    titles_and_contentf : a list of tuples each containing title and callable visualization
+    titles_and_contentf : list
+        A list of tuples each containing title and callable visualization.
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
     tabs = []
     titles = []
@@ -49,11 +56,18 @@ def _display_tabs(titles_and_contentf: List[tuple]):
 
 
 def display_with_export_button(df):
-    """Display dataframe with option to export
+    """
+    Display dataframe with option to export
 
     Parameters
     ----------
-    df : Dataframe to be displayed
+    df : pd.Dataframe
+        Datafarme to be displayed.
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
 
     button = widgets.Button(description="Export data")
@@ -73,14 +87,24 @@ def display_with_export_button(df):
 
 
 def graph_method_ref(df, reference_category=None, sharex=True, func_unit="kg"):
-    """Compare LCAs on provided reference category
+    """
+    Compare LCAs on provided reference category
 
     Parameters
     ----------
-    df : a DataFrame with the impact score for each categories and each activities
-    reference_category : method used for normalization (None by default)
-    sharex: Shared X axes ? True by default
-    func_unit : functionnal unit (kg by default)
+    df : pd.DataFrame
+        DataFrame with the impact score for each categories and each activities.
+    reference_category : tuple, optional
+        Method used for normalization (None by default).
+    sharex : bool, optional
+        Shared X axes ? True by default.
+    func_unit : str, optional
+        Functional unit (kg by default).
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -141,15 +165,26 @@ def graph_method_ref(df, reference_category=None, sharex=True, func_unit="kg"):
 
 
 def graph_multi(df, methods, sharex=True, cols=2, func_unit="kg"):
-    """Compare LCAs on several impact categories
+    """
+    Compare LCAs on several impact categories
 
     Parameters
     ----------
-    df : a DataFrame with the impact score for each categories and each activities
-    methods : set of methods
-    sharex: Shared X axes ? True by default
-    cols: number of columns to plot
-    func_unit : functionnal unit (kg by default)
+    df : pd.DataFrame
+        DataFrame with the impact score for each categories and each activities.
+    methods : list
+        Set of methods.
+    sharex: bool, optional
+        Shared X axes ? True by default.
+    cols : int, optional
+        Number of columns to plot.
+    func_unit : str, optional
+        Functional unit (kg by default).
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -213,16 +248,28 @@ def graph_multi(df, methods, sharex=True, cols=2, func_unit="kg"):
 
 
 def compare(df, methods, reference_category=None, sharex=True, cols=2, func_unit="kg"):
-    """Compare several activities for several impact categories
+    """
+    Compare several activities for several impact categories
 
     Parameters
     ----------
-    df : a DataFrame with the impact score for each categories and each activities
-    methods : set of methods
-    reference_category : method used for normalization (None by default)
-    sharex: Shared X axes ? True by default
-    cols: number of columns to plot
-    func_unit : functionnal unit (kg by default)
+    df : pd.DataFrame
+        DataFrame with the impact score for each categories and each activities.
+    methods : list
+        Set of methods.
+    reference_category : tuple, optional
+        The method used for normalization (None by default).
+    sharex: bool, optional
+        Shared X axes ? True by default.
+    cols : int, optional
+        The number of columns to plot.
+    func_unit : str, optional
+        Functional unit (kg by default).
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
     df = df.copy(deep=True)
 
@@ -242,16 +289,28 @@ def compare(df, methods, reference_category=None, sharex=True, cols=2, func_unit
 
 
 def contributions(df_contrib, act, method, df, df_color, reference_category):
-    """Compare several activities for several impact categories
+    """
+    Compare several activities for several impact categories
 
     Parameters
     ----------
-    df_contrib : a Dataframe with the main contributors of the lca score
-    act : activity to be analyzed
-    methods : set of impact category methods
-    df : a DataFrame with the impact score for each categories and each activities
-    df_color: a Dataframe to colorize each method
-    reference_category : method used for normalization (None by default)
+    df_contrib : pd.DataFrame
+        Dataframe with the main contributors of the lca score.
+    act : dict
+        Activity to be analyzed.
+    methods : list
+        Set of impact category methods.
+    df : pd.DataFrame
+        DataFrame with the impact score for each categories and each activities.
+    df_color: pd.DataFrame
+        Dataframe to colorize each method.
+    reference_category : tuple
+        The method used for normalization (None by default).
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -320,16 +379,27 @@ def contributions(df_contrib, act, method, df, df_color, reference_category):
 
 
 def hotspots(df, fu, methods, reference_category=None, limit=0.05):
-    """Plot the contribution analysis of an activity for several impact categories and display the associated DataFrame
+    """
+    Plot the contribution analysis of an activity for several impact categories and display the associated DataFrame
     ready to export. If the number of activities is too large, the figure is not displayed.
 
     Parameters
     ----------
-    df : a DataFrame with the impact score for each categories and each activities
-    fu : dictionary of the single activity with its associated amount
-    methods : set of impact category methods
-    reference_category : method used for normalization (None by default)
-    limit: relative threshold of the total lca score from which contributors are displayed (0.05 by default)
+    df : pd.Dataframe
+        DataFrame with the impact score for each categories and each activities.
+    fu : dict
+        Dictionary of the single activity with its associated amount.
+    methods : list
+        Set of impact category methods.
+    reference_category : tuple, optional
+        Method used for normalization (None by default).
+    limit: float
+        Relative threshold of the total lca score from which contributors are displayed (0.05 by default).
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
     df = df.copy(deep=True)
 
@@ -349,14 +419,23 @@ def hotspots(df, fu, methods, reference_category=None, limit=0.05):
 
 
 def heatmap(df_norm, methods, func_unit):
-    """Plot the heatmap for comparison of different LCAs and display the associated DataFrame
+    """
+    Plot the heatmap for comparison of different LCAs and display the associated DataFrame
     ready to export.
 
     Parameters
     ----------
-    df_norm : impact score DataFrame with normalized results for each impact category
-    methods : set of impact category methods
-    func_unit : functionnal unit (kg by default)
+    df_norm : pd.DataFrame
+        Impact score DataFrame with normalized results for each impact category.
+    methods : list
+        Set of impact category methods.
+    func_unit : str, optional
+        Functional unit (kg by default).
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -380,10 +459,19 @@ def transfer_impact(fu, act_ref, df_norm, methods):
 
     Parameters
     ----------
-    fu : dictionary of activities with the associated amount
-    act_ref: activity which has the highest score the reference method
-    df_norm : impact score DataFrame with normalized results for each impact category
-    methods : set of impact category methods
+    fu : dict
+        Dictionary of activities with the associated amount.
+    act_ref: dict
+        Activity which has the highest score the reference method.
+    df_norm : pd.DataFrame
+        Impact score DataFrame with normalized results for each impact category.
+    methods : list
+        Set of impact category methods.
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
     act_transfert = [act for act in fu.keys() if act != act_ref][0]
     df_transfer = df_norm[act_transfert['name']] * 100 - df_norm[act_ref['name']] * 100  # %
@@ -444,10 +532,19 @@ def reference_contributions(df, act, methods, cols):
 
     Parameters
     ----------
-    df : a DataFrame with the impact score for each categories and each activities
-    act : activity to be analyzed
-    methods : set of impact category methods
-    cols: number of columns to plot
+    df : pd.DataFrame
+        DataFrame with the impact score for each categories and each activities.
+    act : dict
+        Activity to be analyzed.
+    methods : list
+        Set of impact category methods.
+    cols: int
+        Number of columns to plot.
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -533,17 +630,30 @@ def reference_contributions(df, act, methods, cols):
 
 
 def impact_transfer(df, fu, methods, reference_category=None, limit=5, cols=3, func_unit="kg"):
-    """Plot the variations of the contribution of the top processes (for the reference method) for each impact category
+    """
+    Plot the variations of the contribution of the top processes (for the reference method) for each impact category
 
     Parameters
     ----------
-    df : a DataFrame with the impact score for each categories and each activities
-    fu : dictionary of activities with the associated amount
-    methods : set of impact category methods
-    reference_category : method used for normalization (None by default)
-    limit: relative threshold of the total lca score from which contributors are displayed (0.05 by default)
-    cols: number of columns to plot
-    func_unit : functionnal unit (kg by default)
+    df : pd.DataFrame
+        DataFrame with the impact score for each categories and each activities.
+    fu : dict
+        Dictionary of activities with the associated amount.
+    methods : list
+        Set of impact category methods
+    reference_category : tuple, optional
+        method used for normalization (None by default).
+    limit: float, optional
+        Relative threshold of the total lca score from which contributors are displayed (0.05 by default).
+    cols: int, optional
+        Number of columns to plot
+    func_unit : str, optional
+        Functional unit (kg by default).
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
     df = df.copy(deep=True)
 
@@ -574,18 +684,29 @@ def impact_transfer(df, fu, methods, reference_category=None, limit=5, cols=3, f
 
 
 def lca_graphic(fu, methods, reference_category=None, func_unit="kg"):
-    """Generic function that calls the other methods to plot :
-    - one dashboard that compare the impacts of serveral activites in different impact categories
-    - one dashboard for each activity to plot the main contributors for each impact categories
-    - one dashboard to plot the variations of the contribution of the top processes (for the
-        reference method) for each impact category
+    """
+    Generic function that calls the other methods to plot:
+
+    - one dashboard that compares the impacts of several activities in different impact categories
+    - one dashboard for each activity to plot the main contributors for each impact category
+    - one dashboard to plot the variations of the contribution of the top processes
+        (for the reference method) for each impact category
 
     Parameters
     ----------
-    fu : dictionary of the activity/activities to compare associated with its/their associated reference flow/s
-    methods : set of methods
-    reference_category : method used for normalization (None by default)
-    func_unit : functionnal unit (kg by default)
+    fu : dict
+        Dictionary of the activity/activities to compare associated with its/their associated reference flow(s).
+    methods : list
+        Set of methods.
+    reference_category : tuple, optional
+        Method used for normalization (None by default).
+    func_unit : str, optional
+        Functional unit (kg by default).
+
+    Returns
+    -------
+    None
+        This function does not return any value.
     """
 
     if reference_category is None:  # if no reference method is given, the first method is chosen by default.

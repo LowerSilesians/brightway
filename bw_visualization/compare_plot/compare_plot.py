@@ -569,7 +569,7 @@ def reference_contributions(df, act, methods, cols):
                 if c in contributions_by_category[m].index:
                     result_df.at[c, m] = contributions_by_category[m].loc[c][0]
                 else:
-                    result_df.at[c, m] = pd.np.nan
+                    result_df.at[c, m] = np.nan
 
         names = []
         for c in result_df.index:

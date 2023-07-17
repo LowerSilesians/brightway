@@ -5,6 +5,32 @@ from bw2data import get_activity
 
 
 def update_or_create_nodes(nodes, activity, actual_node, parent_node, source, target, scores):
+    """
+    Update or create nodes dictionary
+
+    Parameters
+    ----------
+    nodes : dict
+        Dictionary containing information about the nodes. Keys are int values
+        regarding the source/target values.
+    activity : Activity
+        Starting point of the supply chain graph.
+    actual_node : int
+        Actual node.
+    parent_node : int
+        Parent node.
+    source : list
+        List of int regarding the keys from 'nodes'.
+    target : list
+        List of int regarding the keys from 'nodes'.
+    scores : list
+        List of floats/list containing the weight of the links between the nodes from 'nodes'.
+
+    Returns
+    -------
+    tuple
+        Nodes.
+    """
     if nodes is None:
         nodes = {0: {"act": activity, 'name': f"{activity['name']}, {activity['location']}"},
                  1: {"act": activity, 'name': f"{activity['name']}, {activity['location']}"}}
@@ -20,6 +46,34 @@ def update_or_create_nodes(nodes, activity, actual_node, parent_node, source, ta
 
 
 def calculate_score(activity, lca_obj, mc, amount, lcia_method, mc_number, total_score, cutoff):
+    """
+    Calculate LCA score
+
+    Parameters
+    ----------
+    activity : Activity
+        Starting point of the supply chain graph.
+    lca_obj : LCA
+        LCA object
+    mc : bool
+        Wether Monte Carlo simulation should carry out or not.
+    amount : int
+        Amount of activity to assess.
+    lcia_method : tuple
+        LCIA method to use when traversing supply chain graph.
+    mc_number : int
+        Iterations of the monte carlo simulations
+    total_score : float
+        LCA total score
+    cutoff : float
+        Fraction of total score to use as cutoff when deciding whether to traverse deeper and
+        if Monte Carlo simulation should be carried out.
+
+    Returns
+    -------
+    tuple
+        LCA score.
+    """
     if lca_obj is None:
         if mc:
             lca_obj = bc.LCA({activity: amount}, lcia_method, use_distributions=True)
@@ -73,13 +127,14 @@ def recursive_calculation_to_plotly(
         parent_node=None,
 
 ):
-    """Traverse a supply chain graph, and calculate the LCA scores of each component.
-    Adds a dictionary to result_list of the form:
+    """
+    Traverse a supply chain graph, and calculate the LCA scores of each component.
+    Adds a dictionary to result_list of the form.
 
     Parameters
     ----------
     activity: Activity
-        The starting point of the supply chain graph.
+        Starting point of the supply chain graph.
     lcia_method: tuple
         LCIA method to use when traversing supply chain graph.
     amount: int
@@ -88,8 +143,11 @@ def recursive_calculation_to_plotly(
         Maximum depth to traverse.
     cutoff: float
         Fraction of total score to use as cutoff when deciding whether to traverse deeper and
-        if Monte Carlo simulation should be carried out. mc: bool. Decide if Monte Carlo simulation should
-        carry out. This can take some time. mc_number: int. Iterations of the monte carlo simulations
+        if Monte Carlo simulation should be carried out.
+    mc: bool
+        wether Monte Carlo simulation should carry out or not.
+    mc_number: int
+        Iterations of the monte carlo simulations.
 
     Internal args (used during recursion, do not touch)
     ---------------------------------------------------
@@ -105,12 +163,13 @@ def recursive_calculation_to_plotly(
     Returns
     -------
     dict
-        dictionary of the following lists:
-            sources: list of int regarding the keys from 'nodes'
-            targets: list of int regarding the keys from 'nodes'
-            scores: list of floats/list containing the weight of the links between the nodes from 'nodes'.
-                    Monte Carlo results are wrapped in a nested list. nodes: dictionary containing information
-                    about the nodes. Keys are int values regarding the source/target values.
+        Dictionary of the following lists:
+            sources: List of int regarding the keys from 'nodes'.
+            targets: List of int regarding the keys from 'nodes'.
+            scores: List of floats/list containing the weight of the links between the nodes from 'nodes'.
+                    Monte Carlo results are wrapped in a nested list.
+            nodes: Dictionary containing information about the nodes. Keys are int values
+                   regarding the source/target values.
     """
 
     activity = get_activity(activity)

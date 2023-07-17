@@ -5,14 +5,23 @@ import bw2analyzer as ba
 
 
 def lca_comparison(fu, methods, method_ref=None):
-    """Compare several activities for several impact categories and return a DataFrame with the impact score for each
+    """
+    Compare several activities for several impact categories and return a DataFrame with the impact score for each
     categories and each activities.
 
     Parameters
     ----------
-    fu : dictionary of the activity/activities to compare associated with its/their associated reference flow/s
-    methods : tuple of several/single methods
-    method_ref : method used for normalization (by default, None)
+    fu : dict
+        Dictionary of the activity/activities to compare associated with its/their associated reference flow/s.
+    methods : tuple
+        Set of methods.
+    method_ref : tuple
+        Method used for normalization (by default, None).
+
+    Returns
+    -------
+    pd.DataFrame
+        LCA comparison dataframe
     """
     if method_ref is None:  # if no reference method is given, the first method is chosen by default.
         method_ref = methods[0]
@@ -43,12 +52,20 @@ def lca_comparison(fu, methods, method_ref=None):
 
 
 def act_topscore(fu, method_ref):
-    """Give the activity which has the highest score the reference method
+    """
+    Give the activity which has the highest score the reference method
 
     Parameters
     ----------
-    fu : dictionary of the activity/activities to compare associated with its/their associated reference flow/s
-    method_ref : method used for normalization
+    fu : dict
+        Dictionary of the activity/activities to compare associated with its/their associated reference flow/s.
+    method_ref : tuple
+        Method used for normalization.
+
+    Returns
+    -------
+    dict
+        Highest score activity.
     """
     activities = list(fu.keys())
     scores = []
@@ -69,13 +86,23 @@ def contributions_df(activity, method, limit=0.01, limit_type='percent', group_b
 
     Parameters
     ----------
-    activity : activity to be analyzed
-    method : impact category method
-    limit: relative threshold of the total lca score from which contributors are displayed : (0.01 by default)
-    limit_type : percentage or number for the threshold ('percent' by default)
-    group_by_other : group the other contributors into an 'other' category (True by default)
-    norm : norm the contributions (False by default)
-    code : get the code of the activities instead of the names
+    activity : dict
+        Activity to be analyzed.
+    method : tuple
+        Impact category method.
+    limit: float, optional
+        Relative threshold of the total lca score from which contributors are displayed : (0.01 by default).
+    limit_type : str, optional
+        Percentage or number for the threshold ('percent' by default).
+    group_by_other : bool, optional
+        Group the other contributors into an 'other' category (True by default).
+    norm : bool, optional
+        Norm the contributions (False by default).
+
+    Returns
+    -------
+    pd.DataFrame
+        main contributors to the lca score.
     """
 
     ca = ba.ContributionAnalysis()

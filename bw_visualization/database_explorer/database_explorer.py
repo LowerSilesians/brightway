@@ -74,14 +74,13 @@ def contribution_analysis_by_activities(lca, ratio=0.8, length_max=10):
 
 
 class ListAct:
-    def __init__(self, database, name, methods_ef, methods_cc, location="", unit="", list_act_input=None):
+    def __init__(self, database, name, methods, location="", unit="", list_act_input=None):
         self.database = database
         self.name = name
         self.list_act = list_act_input
         self.location = location
         self.unit = unit
-        self.METHODS_EF = methods_ef
-        self.METHODS_CC = methods_cc
+        self.METHOD = methods
 
     def search(self, strict=False):
         if not self.list_act:
@@ -157,10 +156,10 @@ class ListAct:
 
     def get_impacts(self):
         list_inv = [{act: 1} for act in self.list_act]
-        bwd.calculation_setups["multiLCA"] = {"inv": list_inv, "ia": self.METHODS_EF}
+        bwd.calculation_setups["multiLCA"] = {"inv": list_inv, "ia": self.METHODS}
         my_multi_lca = bwc.MultiLCA("multiLCA")
         df_impacts = pd.DataFrame(data=my_multi_lca.results)
-        df_impacts.columns = [f"{m[1]} \n {m[2]}" for m in self.METHODS_EF]
+        df_impacts.columns = [f"{m[1]} \n {m[2]}" for m in self.METHODS]
         df_impacts.index = [
             f"{act['name']} [{act['location']}]" for act in self.list_act
         ]
@@ -311,10 +310,10 @@ class ListAct:
         if save:
             pdf.close()
 
-    def dashboard(self, i, method, cutoff, amount=1):
+    def dashboard(self, i, methods, cutoff, amount=1):
         act = self.list_act[i]
 
-        lca = bwc.LCA({act: amount}, method)
+        lca = bwc.LCA({act: amount}, methods)
         lca.lci()
         lca.lcia()
 

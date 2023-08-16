@@ -24,8 +24,8 @@ class JRCAssumedDiagonalGraphTraversal:
     only methods. Should be used by calling the ``calculate`` method.
 
     .. warning:: Graph traversal with multioutput
-    processes only works when other inputs are substituted (see `Multioutput processes in LCA
-    <http://chris.mutel.org/multioutput.html>`__ for a description of multioutput process math in LCA).
+        processes only works when other inputs are substituted (see `Multioutput processes in LCA
+        <http://chris.mutel.org/multioutput.html>`_ for a description of multioutput process math in LCA).
     """
 
     def calculate(self, lca, cutoff=0.005, max_calc=1e5, skip_coproducts=False):
@@ -522,15 +522,19 @@ def calculate_dashboard(lca, cutoff):
 def plot_dashboard(
         df, lca, fig_sunburst_pos, fig_sunburst_neg, fig_waterfall, fig_sankey
 ):
-    method = lca.method
-    unit = bd.Method(method).metadata["unit"]
+    # For the moment, we take only one method, since we're doing single LCA (not MUltiLCA)
+    methods = [bd.Method(lca.method)]
+    # The line below should be changed uppon method change
+    unit = methods[0].metadata["unit"]
+    # For the moment, we accept only one method, but eventually this should accept mulitple methods
+    method_options = [{"label": " ".join(method.name),
+                       "value":str(method.name)} for method in methods]
 
     app = Dash(
         __name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME]
     )
 
     main_activity = df.query("depth == 1")
-    methods = ["-".join(x) for x in bd.methods if "IPCC 2013" in x[0]]
 
     app.layout = html.Div(
         [
@@ -556,8 +560,10 @@ def plot_dashboard(
                                     [
                                         html.Label("Method"),
                                         dcc.Dropdown(
-                                            methods,
-                                            "-".join(method),
+                                            options=method_options,
+                                            # later on, when we use the methods to change the dashboard
+                                            # we will need a reference to a bw method, that are tuples
+                                            value=method_options[0]["value"],
                                             id="method-select",
                                         ),
                                         html.Div(

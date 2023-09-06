@@ -17,19 +17,13 @@ import bw2data as bd
 import bw2io as bi
 
 bd.projects.set_current("E3_database_bw25")
-eidb = bd.Database('ecoinvent 3.7 cut-off')
+eidb = bd.Database('US EEIO 1.1')
 
-methods_EF = [
-    m
-    for m in bwd.methods
-    if "EF v3.0 EN15804" in str(m)
-    and not "no LT" in str(m)
-    and not "obsolete" in str(m)
-]
-methods_CC = [m for m in methods_EF if "climate" in str(m)]
-method_CC = methods_CC[0]
+methods = list(set(method for method in bd.methods))[0: 3]
 
-result = plot(database=eidb, name="biomethane production", methods_ef=methods_EF, methods_cc=methods_CC, i=0, method=method_CC, cutoff=0.02, unit='cubic meter')
+acts = [act for i, act in enumerate(eidb) if 'location' in act and i < 2]
+
+plot(eidb, acts, methods, 0.02)
 ```
 
 ## Visualization

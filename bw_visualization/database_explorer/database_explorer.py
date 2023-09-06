@@ -9,7 +9,7 @@ import bw2data as bwd
 import bw2calc as bwc
 from IPython.display import display
 
-from .utils import calculate_dashboard, plot_dashboard
+from .utils import calculate_dashboard, plot_dashboard, JRCAssumedDiagonalGraphTraversal
 
 plt.style.use("ggplot")
 
@@ -74,27 +74,10 @@ def contribution_analysis_by_activities(lca, ratio=0.8, length_max=10):
 
 
 class ListAct:
-    def __init__(self, database, name, methods_ef, methods_cc, location="", unit="", list_act_input=None):
+    def __init__(self, database, list_act_input, methods):
         self.database = database
-        self.name = name
         self.list_act = list_act_input
-        self.location = location
-        self.unit = unit
-        self.METHODS_EF = methods_ef
-        self.METHODS_CC = methods_cc
-
-    def search(self, strict=False):
-        if not self.list_act:
-            list_act = [
-                act
-                for act in self.database
-                if self.name in act["name"]
-                and self.location in act["location"]
-                and self.unit in act["unit"]
-            ]
-            if strict:
-                list_act = [act for act in list_act if act["name"] == self.name]
-            self.list_act = list_act
+        self.methods = methods
 
     def get_list(self, field):
         return {act[field] for act in self.list_act}
@@ -143,9 +126,15 @@ class ListAct:
         df = df.sort_values("edge_type")
         return df
 
+    def get_lca(self, act, method, amount):
+        lca = bwc.LCA({act: amount}, method)
+        lca.lci()
+        lca.lcia()
+        return lca
+
     def get_inventories(self, index_name="name"):
         dataframe = pd.DataFrame()
-        for i, act in enumerate(self.list_act):
+        for i, _ in enumerate(self.list_act):
             df = self.get_inventory(i)
             df = df.groupby("source_name")["edge_amount"].sum()
             dataframe[i] = df
@@ -155,18 +144,21 @@ class ListAct:
             dataframe.columns = [act["name"] + "_" + act["location"] for act in self.list_act]
         self.dataframe = dataframe
 
+    def cs_name(self, amount=1):
+        name = "multiLCA"
+        list_inv = [{act: amount} for act in self.list_act]
+        bwd.calculation_setups[name] = {"inv": list_inv, "ia": self.methods}
+        return name
+
     def get_impacts(self):
-        list_inv = [{act: 1} for act in self.list_act]
-        bwd.calculation_setups["multiLCA"] = {"inv": list_inv, "ia": self.METHODS_EF}
-        my_multi_lca = bwc.MultiLCA("multiLCA")
+        my_multi_lca = bwc.MultiLCA(self.cs_name())
         df_impacts = pd.DataFrame(data=my_multi_lca.results)
-        df_impacts.columns = [f"{m[1]} \n {m[2]}" for m in self.METHODS_EF]
+        df_impacts.columns = [f"{m[1]} \n {m[2]}" for m in self.methods]
         df_impacts.index = [
             f"{act['name']} [{act['location']}]" for act in self.list_act
         ]
 
         self.impacts = df_impacts
-        self.methods = self.METHODS_EF
         return df_impacts
 
     def plot_impact_climate(self):
@@ -203,7 +195,7 @@ class ListAct:
             ax=ax, legend=False, subplots=True, kind="bar", alpha=0.6,
         )
         if double_axis:
-            (self.impacts / self.impacts.max() * 100).plot(
+            (self.impacts / self.impacts.max() * 100 if self.impacts.max() != 0 else 0).plot(
                 ax=ax2, legend=False, subplots=True, kind="bar", alpha=0
             )
         for i, axi in enumerate(ax):
@@ -218,16 +210,6 @@ class ListAct:
             axi.set_ylabel(bwd.Method(self.methods[i]).metadata["unit"])
 
         return fig, ax
-
-    def explore(self, strict=False, comments=False):
-        self.search(strict=strict)
-        if comments:
-            display(self.list_act)
-            print()
-        self.get_lists()
-        self.print_lists()
-        if comments:
-            self.get_comments()
 
     def analyse(self, print_data=True):
         self.get_inventories()
@@ -246,12 +228,8 @@ class ListAct:
         _, _ = self.plot_impacts()
 
     def calculate_contribution_analysis(
-        self, act, method, ratio=0.8, length_max=10, amount=1
+        self, lca, ratio=0.8, length_max=10
     ):
-        lca = bwc.LCA({act: amount}, method)
-        lca.lci()
-        lca.lcia()
-
         df_cae = contribution_analysis_by_substances(
             lca=lca, ratio=ratio, length_max=length_max
         )
@@ -299,11 +277,9 @@ class ListAct:
         for method in methods:
             print(method)
             self.calculate_contribution_analysis(
-                act=act,
-                method=method,
+                lca=self.get_lca(act, method, amount),
                 ratio=ratio,
                 length_max=length_max,
-                amount=amount,
             )
             fig = self.plot_contribution_analysis(act=act, method=method, amount=amount)
             if save:
@@ -311,58 +287,40 @@ class ListAct:
         if save:
             pdf.close()
 
-    def dashboard(self, i, method, cutoff, amount=1):
-        act = self.list_act[i]
-
-        lca = bwc.LCA({act: amount}, method)
-        lca.lci()
-        lca.lcia()
-
-        (
-            df,
-            lca,
-            fig_sunburst_pos,
-            fig_sunburst_neg,
-            fig_waterfall,
-            fig_sankey,
-        ) = calculate_dashboard(lca, cutoff)
+    def dashboard(self, methods, cutoff, unit, amount=1):
+        figures = calculate_dashboard(self.list_act, methods, cutoff, amount)
 
         app = plot_dashboard(
-            df, lca, fig_sunburst_pos, fig_sunburst_neg, fig_waterfall, fig_sankey
+            methods, figures, self.list_act, unit
         )
         return app
 
     # Functions prior to the dashboard
-    def plot_sankey(self, i, method, cutoff, amount=1):
-        act = self.list_act[i]
-        lca = bwc.LCA({act: amount}, method)
-        lca.lci()
-        lca.lcia()
+    def plot_sankey(self, lca, act, method, cutoff, amount):
         impact = lca.score
         unit = bwd.Method(method).metadata["unit"]
 
-        gt = bwc.GraphTraversal().calculate({act: amount}, method=method, cutoff=cutoff)
+        gt = JRCAssumedDiagonalGraphTraversal().calculate(lca, cutoff)
 
-        acts = gt["lca"].activity_dict
-        id_to_key = {v: k for k, v in acts.items()}
+        acts = lca.dicts.activity
         # labels = {k: bw.get_activity(v)["name"] for k in gt["nodes"].values()}
         ids = list(gt["nodes"].keys())
-        labels = [bwd.get_activity(id_to_key[id])["name"] for id in ids[1:]]
+        labels = [bwd.get_activity(acts[id])["name"] for id in ids[1:]]
         labels = ["root"] + labels
         id_to_idx = {id: idx for idx, id in enumerate(ids)}
         edges = gt["edges"]
-        edges_plot = dict(
-            target=[id_to_idx[edge["to"]] for edge in edges],
-            source=[id_to_idx[edge["from"]] for edge in edges],
-            value=[edge["impact"] / impact * 100 for edge in edges],
-        )
+        edges_plot = {
+            "target": [id_to_idx[edge["to"]] for edge in edges],
+            "source": [id_to_idx[edge["from"]] for edge in edges],
+            "value": [(edge["impact"] / impact if impact != 0 else 0) * 100 for edge in edges],
+        }
 
         fig = go.Figure(
             data=[
                 go.Sankey(
                     valueformat=".0f",
                     valuesuffix=" %",
-                    node=dict(label=labels),
+                    node={"label": labels},
                     link=edges_plot,
                 ),
             ],
@@ -378,32 +336,28 @@ class ListAct:
 
         return fig
 
-    def plot_sankeys(self, i, methods, cutoff, amount=1, save=True):
+    def plot_sankeys(self, act, methods, cutoff, amount=1, save=True):
         with open("output_Sankey.html", "a", encoding='utf-8') as f:
             for method in methods:
-                fig = self.plot_sankey(i=i, method=method, cutoff=cutoff, amount=amount)
+                lca = self.get_lca(act, method, amount)
+                fig = self.plot_sankey(lca, act, method=method, cutoff=cutoff, amount=amount)
                 if save:
                     f.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
                 else:
                     fig.show()
 
-    def plot_sunburst(self, i, method, cutoff, amount=1):
-        act = self.list_act[i]
-        lca = bwc.LCA({act: amount}, method)
-        lca.lci()
-        lca.lcia()
+    def plot_sunburst(self, lca, act, method, cutoff, amount=1):
         impact = lca.score
         unit = bwd.Method(method).metadata["unit"]
 
-        gt = bwc.GraphTraversal().calculate({act: amount}, method=method, cutoff=cutoff)
+        gt = JRCAssumedDiagonalGraphTraversal().calculate(lca, cutoff=cutoff)
 
         # Label
-        acts = gt["lca"].activity_dict
-        id_to_key = {v: k for k, v in acts.items()}
+        acts = lca.dicts.activity
 
         ids = list(gt["nodes"].keys())
-        labels = [bwd.get_activity(id_to_key[id])["name"] for id in ids[1:]]
-        labels_loc = [bwd.get_activity(id_to_key[id])["location"] for id in ids[1:]]
+        labels = [bwd.get_activity(acts[id])["name"] for id in ids[1:]]
+        labels_loc = [bwd.get_activity(acts[id])["location"] for id in ids[1:]]
         labels = [
             label + " " + label_loc for label, label_loc in zip(labels, labels_loc)
         ]
@@ -412,23 +366,23 @@ class ListAct:
         edges = edges[: len(labels)]
         ids_source = [edge["to"] for edge in edges]
         ids_source = [
-            bwd.get_activity(id_to_key[id])["name"]
+            bwd.get_activity(acts[id])["name"]
             + " "
-            + bwd.get_activity(id_to_key[id])["location"]
+            + bwd.get_activity(acts[id])["location"]
             for id in ids_source[1:]
         ]
         ids_source = [""] + ids_source
         # Value
         value = [edge["impact"] for edge in edges]
         # Data dictionary
-        data = dict(label=labels, location=labels_loc, parent=ids_source, value=value)
+        data = {"label": labels, "location": labels_loc, "parent": ids_source, "value": value}
         df = pd.DataFrame.from_dict(data)
         # Percentage data
-        df["value_pct"] = df.value / impact * 100
+        df["value_pct"] = df.value / impact * 100 if impact != 0 else 0
         # Flooring percentage value to avoid sum of childs slightly higher than parents, and calculating value from
         # floored pct
         df.value_pct = (df.value_pct * 10).apply(math.floor) / 10
-        df.value = df.value_pct / 100 * impact
+        df.value = df.value_pct / 100 * impact if impact != 0 else 0
         df.value = df.value.apply(lambda x: round(x, 3))
 
         # Filtering negative value
@@ -466,11 +420,12 @@ class ListAct:
         # fig.show()
         return fig
 
-    def plot_sunbursts(self, i, methods, cutoff, amount=1, save=True):
+    def plot_sunbursts(self, act, methods, cutoff, amount=1, save=True):
         with open("output_Sunburst.html", "a", encoding='utf-8') as f:
             for method in methods:
+                lca = self.get_lca(act, method, amount)
                 fig = self.plot_sunburst(
-                    i=i, method=method, cutoff=cutoff, amount=amount
+                    lca, act, method=method, cutoff=cutoff, amount=amount
                 )
                 if save:
                     f.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))

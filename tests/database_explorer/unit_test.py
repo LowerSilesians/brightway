@@ -8,14 +8,12 @@ from bw_visualization.database_explorer.database_explorer import (
     ListAct,
 )
 
-# from .utils import sample_1
+from .utils import sample_1
 
 
-# LCA, ACT, METHODS_EF, METHODS_CC, DB = sample_1()
-LCA, ACT, METHODS_EF, METHODS_CC, DB = None, {'name': None, 'unit': None, 'location': None}, {}, {}, None
+ACTS, METHODS, DB, LCA = sample_1()
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('lca', 'expected'),
     [
@@ -29,7 +27,6 @@ def test_calculate_success(lca, expected):
     assert result.get('nodes') is not None
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('lca', 'expected'),
     [
@@ -44,7 +41,6 @@ def test_calculate_fail(lca, expected):
     assert result.get('nodes') is None
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('lca', 'expected'),
     [
@@ -68,7 +64,6 @@ def test_initialize_heap_success(lca, expected):
     assert result[2] is not None
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('lca', 'expected'),
     [
@@ -93,7 +88,6 @@ def test_initialize_heap_fail(lca, expected):
     assert result[2] is None
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('lca', 'expected'),
     [
@@ -117,7 +111,6 @@ def test_cumulative_score_success(lca, expected):
     assert result[2] is not None
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('lca', 'expected'),
     [
@@ -142,7 +135,6 @@ def test_cumulative_score_fail(lca, expected):
     assert result[2] is None
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('lca', 'expected'),
     [
@@ -158,7 +150,6 @@ def test_unit_score_success(lca, expected):
     assert result is not None
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('lca', 'expected'),
     [
@@ -175,7 +166,6 @@ def test_unit_score_fail(lca, expected):
     assert result is None
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('lca', 'expected'),
     [
@@ -201,7 +191,6 @@ def test_traverse_success(lca, expected):
     assert result[2] is not None
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('lca', 'expected'),
     [
@@ -228,111 +217,49 @@ def test_traverse_fail(lca, expected):
     assert result[2] is None
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('list_act', 'expected'),
     [
-        (ListAct(DB, ACT['name'], METHODS_EF, METHODS_EF, ACT['location'], ACT['unit']), [ACT])
-    ]
-)
-def test_list_act_search_success(list_act, expected):
-    list_act.search()
-    result = list_act.list_act
-    assert result == expected
-
-
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
-@pytest.mark.parametrize(
-    ('list_act', 'expected'),
-    [
-        (ListAct(DB, ACT['name'], METHODS_EF, METHODS_EF, ACT['location'], ACT['unit']), [])
-    ]
-)
-@pytest.mark.xfail(strict=True)
-def test_list_act_search_fail(list_act, expected):
-    list_act.search()
-    result = list_act.list_act
-    assert result == expected
-
-
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
-@pytest.mark.parametrize(
-    ('list_act', 'expected'),
-    [
-        (ListAct(DB, ACT['name'], METHODS_EF, METHODS_EF, ACT['location'], ACT['unit']), {ACT['name'], })
-    ]
-)
-def test_list_act_get_list_success(list_act, expected):
-    list_act.search()
-    result = list_act.get_list('name')
-    assert result == expected
-
-
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
-@pytest.mark.parametrize(
-    ('list_act', 'expected'),
-    [
-        (ListAct(DB, ACT['name'], METHODS_EF, METHODS_EF, ACT['location'], ACT['unit']), {})
-    ]
-)
-@pytest.mark.xfail(strict=True)
-def test_list_act_get_list_fail(list_act, expected):
-    list_act.search()
-    result = list_act.get_list('name')
-    assert result == expected
-
-
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
-@pytest.mark.parametrize(
-    ('list_act', 'expected'),
-    [
-        (ListAct(DB, ACT['name'], METHODS_EF, METHODS_EF, ACT['location'], ACT['unit']), ACT['name'])
+        (ListAct(DB, ACTS, METHODS), ACTS[0]['name'])
     ]
 )
 def test_list_act_get_inventory_success(list_act, expected):
-    list_act.search()
     result = list_act.get_inventory(0)
     assert expected in list(result['source_name'])
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('list_act', 'expected'),
     [
-        (ListAct(DB, ACT['name'], METHODS_EF, METHODS_EF, ACT['location'], ACT['unit']), '')
+        (ListAct(DB, ACTS, METHODS), '')
     ]
 )
 @pytest.mark.xfail(strict=True)
 def test_list_act_get_inventory_fail(list_act, expected):
-    list_act.search()
     result = list_act.get_inventory(0)
     assert expected in list(result['source_name'])
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('list_act', 'expected'),
     [
-        (ListAct(DB, ACT['name'], METHODS_EF, METHODS_EF, ACT['location'], ACT['unit']), None)
+        (ListAct(DB, ACTS, METHODS), None)
     ]
 )
 def test_list_act_get_inventories_success(list_act, expected):
-    list_act.search()
     list_act.get_inventories()
     result = list_act.dataframe
     assert result is not None
 
 
-@pytest.mark.skip(reason="Cant be tested until database_explorer is ready!")
 @pytest.mark.parametrize(
     ('list_act', 'expected'),
     [
-        (ListAct(DB, ACT['name'], METHODS_EF, METHODS_EF, ACT['location'], ACT['unit']), None)
+        (ListAct(DB, ACTS, METHODS), None)
     ]
 )
 @pytest.mark.xfail(strict=True)
 def test_list_act_get_inventories_fail(list_act, expected):
-    list_act.search()
     list_act.get_inventories()
     result = list_act.dataframe
     assert result is None

@@ -2,15 +2,17 @@
 # includes separate calculation of positive and negative impact
 import warnings
 import math
-
 from heapq import heappop, heappush
+
 import numpy as np
 import pandas as pd
-from bw2calc import spsolve
+import bw2calc as bwc
 import bw2data as bd
 import plotly.graph_objects as go
-from dash import Dash, dcc, html
 import dash_bootstrap_components as dbc
+from bw2calc import spsolve
+from dash import Dash, dcc, html
+from dash.dependencies import Input, Output
 
 
 class JRCAssumedDiagonalGraphTraversal:
@@ -24,8 +26,8 @@ class JRCAssumedDiagonalGraphTraversal:
     only methods. Should be used by calling the ``calculate`` method.
 
     .. warning:: Graph traversal with multioutput
-    processes only works when other inputs are substituted (see `Multioutput processes in LCA
-    <http://chris.mutel.org/multioutput.html>`__ for a description of multioutput process math in LCA).
+        processes only works when other inputs are substituted (see `Multioutput processes in LCA
+        <http://chris.mutel.org/multioutput.html>`_ for a description of multioutput process math in LCA).
     """
 
     def calculate(self, lca, cutoff=0.005, max_calc=1e5, skip_coproducts=False):
@@ -137,9 +139,9 @@ class JRCAssumedDiagonalGraphTraversal:
                     "from": str(index),
                     "amount": amount,
                     "exc_amount": amount,
-                    "impact": cum_score * amount / float(supply[index]),
-                    "impact_neg": cum_score_neg * amount / float(supply[index]),
-                    "impact_pos": cum_score_pos * amount / float(supply[index]),
+                    "impact": cum_score * amount / float(supply[index]) if supply[index] != 0 else 0,
+                    "impact_neg": cum_score_neg * amount / float(supply[index]) if supply[index] != 0 else 0,
+                    "impact_pos": cum_score_pos * amount / float(supply[index]) if supply[index] != 0 else 0,
                 }
             )
         return heap, nodes, edges
@@ -221,7 +223,7 @@ class JRCAssumedDiagonalGraphTraversal:
             # Multiply by -1 because technosphere values are negative
             # (consumption of inputs) and rescale
             children = [
-                (int(col.row[i]), float(-1 * col.data[i] / scale_value))
+                (int(col.row[i]), float(-1 * col.data[i] / scale_value if scale_value != 0 else 0))
                 for i in range(col.row.shape[0])
             ]
             for activity, amount in children:
@@ -265,9 +267,12 @@ class JRCAssumedDiagonalGraphTraversal:
                         # Raw exchange value
                         "exc_amount": amount,
                         # Impact related to this flow
-                        "impact": flow / total_activity_output * cumulative_score,
-                        "impact_neg": flow / total_activity_output * cum_score_neg,
-                        "impact_pos": flow / total_activity_output * cum_score_pos,
+                        "impact": (flow / total_activity_output * cumulative_score
+                                   if total_activity_output * cumulative_score != 0 else 0),
+                        "impact_neg": (flow / total_activity_output * cum_score_neg
+                                       if total_activity_output * cum_score_neg != 0 else 0),
+                        "impact_pos": (flow / total_activity_output * cum_score_neg
+                                       if total_activity_output * cum_score_neg != 0 else 0),
                     }
                 )
                 # Want multiple incoming edges, but don't add existing node
@@ -284,7 +289,7 @@ class JRCAssumedDiagonalGraphTraversal:
                     # coming directory from or to this activity
                     "ind": self.unit_score(activity, supply, characterized_biosphere),
                 }
-                heappush(heap, (abs(1 / cumulative_score), activity, full_path_id))
+                heappush(heap, (abs(1 / cumulative_score if cumulative_score != 0 else 0), activity, full_path_id))
 
         return nodes, edges, counter
 
@@ -346,7 +351,7 @@ def separate_multiple_parent(df):
             multi_parents["impact_pos_sum"],
     ):
         # print(parent)
-        scale_children(parent, impact / impact_sum)
+        scale_children(parent, impact / impact_sum if impact_sum != 0 else 0)
     return df
 
 
@@ -366,26 +371,25 @@ def plot_sankey(df, unit):
         counter += 1
         counter2 += 1
 
-    links = dict(
-        source=[numbers[id] for id in data_sankey["ids"]],
-        target=[numbers[id] for id in data_sankey["parent_ids"]],
-        value=data_sankey["impact"],
-        hovertemplate="<b>%{source.label}</b> to <b>%{target.label}</b><br>Impact: %{value:.2} "
-                      + unit,
-    )
+    links = {
+        "source": [numbers[id] for id in data_sankey["ids"]],
+        "target": [numbers[id] for id in data_sankey["parent_ids"]],
+        "value": data_sankey["impact"],
+        "hovertemplate": "<b>%{source.label}</b> to <b>%{target.label}</b><br>Impact: %{value:.2} " + unit,
+    }
     # print(links, numbers, nodes)
     fig_sankey = go.Figure(
         data=[
             go.Sankey(
                 link=links,
-                node=dict(
-                    pad=15,
-                    thickness=20,
-                    line=dict(color="black", width=0.5),
-                    label=nodes,
-                    color="blue",
-                    hovertemplate="%{label}<br>Total impact: %{value:.2} " + unit,
-                ),
+                node={
+                    "pad": 15,
+                    "thickness": 20,
+                    "line": {"color": "black", "width": 0.5},
+                    "label": nodes,
+                    "color": "blue",
+                    "hovertemplate": "%{label}<br>Total impact: %{value:.2} " + unit,
+                },
                 valueformat=".0f",
             )
         ]
@@ -416,7 +420,7 @@ def plot_sunbursts(df, unit):
                 branchvalues="total",
                 customdata=labels,
                 # color='labels_short',
-                marker=dict(colorscale=colorscale),
+                marker={"colorscale": colorscale},
                 # color_continuous_scale='algae',
                 hovertemplate="<b>%{customdata} </b> <br> Impact: "
                               + valuesign
@@ -429,7 +433,7 @@ def plot_sunbursts(df, unit):
         fig.update_layout(
             title=title,
             autosize=True,
-            margin=dict(t=0, b=0, l=0, r=0),
+            margin={"t": 0, "b": 0, "l": 0, "r": 0},
             coloraxis=None,
             height=700,
         )
@@ -456,81 +460,116 @@ def plot_waterfall(trav, unit):
     return fig_waterfall
 
 
-def calculate_dashboard(lca, cutoff):
-    trav = JRCAssumedDiagonalGraphTraversal().calculate(lca, cutoff=cutoff)
-    print("Trasversal diagonal calculated.")
-    # name for the activities from activity_dict
-    id_to_key = {v: k for k, v in lca.activity_dict.items()}
-    activities = {
-        str(id): bd.get_activity(id_to_key[id]) for id in list(trav["nodes"].keys())[1:]
-    }
+def calculate_dashboard(acts, methods, cutoff, amount=1):
+    figures = {}
 
-    # put all edge data in a dataframe to be able to scale the children of multi-parent processes
-    ids = [edge["from"] for edge in trav["edges"]]
-    labels = [
-        activities[id.split("-")[-1]]["name"]
-        + " ("
-        + activities[id.split("-")[-1]]["location"]
-        + ")"
-        for id in ids
-    ]
-    parent_ids = [""] + [edge["to"] for edge in trav["edges"]][1:]
+    for act in acts:
+        for method in methods:
+            lca = bwc.LCA({act: amount}, method)
+            lca.lci()
+            lca.lcia()
 
-    data = dict(
-        ids=ids,
-        label=labels,
-        # location = [act['location'] for act in activities],
-        parent_ids=parent_ids,
-        parent=[
-            activities[id.split("-")[-1]]["name"]
-            + " ("
-            + activities[id.split("-")[-1]]["location"]
-            + ")"
-            if id != ""
-            else ""
-            for id in parent_ids
-        ],
-        labels_short=[label[:18] for label in labels],
-        impact_pos=[edge["impact_pos"] for edge in trav["edges"]],
-        impact_neg=[edge["impact_neg"] for edge in trav["edges"]],
-        impact=[edge["impact"] for edge in trav["edges"]],
-        flow_amount=[edge["amount"] for edge in trav["edges"]]
-        # value_pct = value_pct
-    )
-    df = pd.DataFrame.from_dict(data)
+            method_name = method[0]
 
-    df = separate_multiple_parent(df)
-    print("Multiple parent separated.")
+            trav = JRCAssumedDiagonalGraphTraversal().calculate(lca, cutoff=cutoff)
+            print(f"Traversal diagonal calculated for {act['name']}")
 
-    data = df.to_dict(orient="list")
+            id_to_key = {v: k for k, v in lca.activity_dict.items()}
+            activities = {
+                str(id): bd.get_activity(id_to_key[id]) for id in list(trav["nodes"].keys())[1:]
+            }
+            # put all edge data in a dataframe to be able to scale the children of multi-parent processes
+            ids = [edge["from"] for edge in trav["edges"]]
 
-    method = lca.method
-    unit = bd.Method(method).metadata["unit"]
+            labels = [
+                activities[id.split("-")[-1]]["name"]
+                + " ("
+                + activities[id.split("-")[-1]]["location"]
+                + ")"
+                for id in ids
+            ]
+            parent_ids = [""] + [edge["to"] for edge in trav["edges"]][1:]
 
-    fig_sunburst_pos, fig_sunburst_neg = plot_sunbursts(df, unit)
-    print("Sunburst ready.")
+            data = {
+                "ids": ids,
+                "label": labels,
+                # "location" :  [act['location'] for act in activities],
+                "parent_ids": parent_ids,
+                "parent": [
+                    activities[id.split("-")[-1]]["name"]
+                    + " ("
+                    + activities[id.split("-")[-1]]["location"]
+                    + ")"
+                    if id != ""
+                    else ""
+                    for id in parent_ids
+                ],
+                "labels_short": [label[:18] for label in labels],
+                "impact_pos": [edge["impact_pos"] for edge in trav["edges"]],
+                "impact_neg": [edge["impact_neg"] for edge in trav["edges"]],
+                "impact": [edge["impact"] for edge in trav["edges"]],
+                "flow_amount": [edge["amount"] for edge in trav["edges"]]
+                # value_pct :  value_pct
+            }
 
-    fig_waterfall = plot_waterfall(trav, unit)
-    print("Waterfall redy.")
+            df = pd.DataFrame(data)
 
-    fig_sankey = plot_sankey(df, unit)
-    print("Sankey ready.")
+            df = separate_multiple_parent(df)
+            print("Multiple parent separated for", act['name'])
 
-    return df, lca, fig_sunburst_pos, fig_sunburst_neg, fig_waterfall, fig_sankey
+            data = df.to_dict(orient="list")
+
+            method = lca.method
+            unit = bd.Method(method).metadata["unit"]
+
+            fig_sunburst_pos, fig_sunburst_neg = plot_sunbursts(df, unit)
+            print("Sunburst ready for", act['name'])
+
+            fig_waterfall = plot_waterfall(trav, unit)
+            print("Waterfall redy for", act['name'])
+
+            fig_sankey = plot_sankey(df, unit)
+            print("Sankey ready for", act['name'])
+
+            if act['name'] in figures:
+                figures[act['name']][method_name] = {
+                    'fig_sunburst_pos': fig_sunburst_pos,
+                    'fig_sunburst_neg': fig_sunburst_neg,
+                    'fig_waterfall': fig_waterfall,
+                    'fig_sankey': fig_sankey
+                }
+            else:
+                figures[act['name']] = {
+                    method_name: {
+                        'fig_sunburst_pos': fig_sunburst_pos,
+                        'fig_sunburst_neg': fig_sunburst_neg,
+                        'fig_waterfall': fig_waterfall,
+                        'fig_sankey': fig_sankey
+                    }
+                }
+
+    return figures
 
 
 def plot_dashboard(
-        df, lca, fig_sunburst_pos, fig_sunburst_neg, fig_waterfall, fig_sankey
+        methods, figures, acts, unit,
 ):
-    method = lca.method
-    unit = bd.Method(method).metadata["unit"]
+    # For the moment, we take only one method, since we're doing single LCA (not MUltiLCA)
+    # methods = [bd.Method(lca.method)]
+    # The line below should be changed uppon method change
+
+    # For the moment, we accept only one method, but eventually this should accept mulitple methods
+    method_options = [{"label": " ".join(method[0]),
+                       "value":str(method[0])} for method in methods]
+
+    act_options = [{"label": " ".join(act['name']),
+                    "value":str(act['name'])} for act in acts]
 
     app = Dash(
         __name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME]
     )
 
-    main_activity = df.query("depth == 1")
-    methods = ["-".join(x) for x in bd.methods if "IPCC 2013" in x[0]]
+    # main_activity = df.query("depth == 1")
 
     app.layout = html.Div(
         [
@@ -546,8 +585,8 @@ def plot_dashboard(
                                     [
                                         html.Label("Activity"),
                                         dcc.Dropdown(
-                                            main_activity["label"],
-                                            main_activity["label"][0],
+                                            options=act_options,
+                                            value=act_options[0]["value"],
                                             id="activity-select",
                                         ),
                                     ]
@@ -556,8 +595,8 @@ def plot_dashboard(
                                     [
                                         html.Label("Method"),
                                         dcc.Dropdown(
-                                            methods,
-                                            "-".join(method),
+                                            options=method_options,
+                                            value=method_options[0]["value"],
                                             id="method-select",
                                         ),
                                         html.Div(
@@ -608,14 +647,14 @@ def plot_dashboard(
             dbc.Row(
                 [
                     dbc.Col(
-                        dcc.Graph(id="sunburst-pos-graph", figure=fig_sunburst_pos),
+                        dcc.Graph(id="sunburst-pos-graph"),
                         width=5,
                     ),
                     dbc.Col(
-                        dcc.Graph(id="waterfall-graph", figure=fig_waterfall), width=2
+                        dcc.Graph(id="waterfall-graph"), width=2
                     ),
                     dbc.Col(
-                        dcc.Graph(id="sunburst-neg-graph", figure=fig_sunburst_neg),
+                        dcc.Graph(id="sunburst-neg-graph"),
                         width=5,
                     ),
                 ],
@@ -623,10 +662,38 @@ def plot_dashboard(
                 style={"margin-top": "-100px"},
             ),
             dbc.Row(
-                [dbc.Col(dcc.Graph(id="sankey-graph", figure=fig_sankey), md=12), ],
+                [dbc.Col(dcc.Graph(id="sankey-graph"), md=12), ],
                 align="center",
             ),
         ],
     )
+
+    @app.callback(
+        Output("sunburst-pos-graph", "figure"),
+        [Input("activity-select", "value"), Input("method-select", "value")]
+    )
+    def update_sunburst_pos(selected_activity, selected_method):
+        return figures[selected_activity][selected_method]['fig_sunburst_pos']
+
+    @app.callback(
+        Output("sunburst-neg-graph", "figure"),
+        [Input("activity-select", "value"), Input("method-select", "value")]
+    )
+    def update_sunburst_neg(selected_activity, selected_method):
+        return figures[selected_activity][selected_method]['fig_sunburst_neg']
+
+    @app.callback(
+        Output("waterfall-graph", "figure"),
+        [Input("activity-select", "value"), Input("method-select", "value")]
+    )
+    def update_waterfall(selected_activity, selected_method):
+        return figures[selected_activity][selected_method]['fig_waterfall']
+
+    @app.callback(
+        Output("sankey-graph", "figure"),
+        [Input("activity-select", "value"), Input("method-select", "value")]
+    )
+    def update_sankey(selected_activity, selected_method):
+        return figures[selected_activity][selected_method]['fig_sankey']
 
     return app

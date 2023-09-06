@@ -361,29 +361,29 @@ def generate_sankey(data, type=1, cutoff=0.05, emissions=True, method='', barrie
     # style the figure:
     node_color = ['grey'] * len(label_list)
     node_color[0] = 'white'
-    node_line = [dict(color="black", width=0.5)] * len(label_list)
-    node_line[0] = dict(color="white", width=0.5)
+    node_line = [{"color": "black", "width": 0.5}] * len(label_list)
+    node_line[0] = {"color": "white", "width": 0.5}
     label_list[0] = ''
 
     fig = go.Figure(data=[go.Sankey(
-        node=dict(
-            pad=80,
-            thickness=20,
-            line=dict(color="black", width=0.0),
-            label=label_list,
-            color=node_color,
-            customdata=label_list,
-            hovertemplate='%{customdata}',
-        ),
-        link=dict(
-            source=data['sources'],
-            target=data['targets'],
-            value=data['scores'],
-            color=data['colors'],
-            # arrowlen=10,
-            customdata=hoverlabel,
-            hovertemplate='%{customdata}',
-        ))])
+        node={
+            "pad": 80,
+            "thickness": 20,
+            "line": {"color": "black", "width": 0.0},
+            "label": label_list,
+            "color": node_color,
+            "customdata": label_list,
+            "hovertemplate": '%{customdata}',
+        },
+        link={
+            "source": data['sources'],
+            "target": data['targets'],
+            "value": data['scores'],
+            "color": data['colors'],
+            # arrowlen: 10,
+            "customdata": hoverlabel,
+            "hovertemplate": '%{customdata}',
+        })])
 
     fig.update_layout(width=1400)
     fig.update_layout(height=800)

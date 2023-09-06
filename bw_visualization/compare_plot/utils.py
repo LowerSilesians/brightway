@@ -111,7 +111,7 @@ def contributions_df(activity, method, limit=0.01, limit_type='percent', group_b
     lca.lci()
     lca.lcia()
     # returns a list of tuples: (lca score, supply amount, activity name)
-    contrib = (ca.annotated_top_processes(lca, limit=limit, limit_type=limit_type))
+    contrib = ca.annotated_top_processes(lca, limit=limit, limit_type=limit_type)
 
     names = [i[2]['name'] + ' [' + i[2]['location'] + ']' for i in
              contrib]  # for each impact category we concatenate all names
